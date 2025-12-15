@@ -1,103 +1,77 @@
 import streamlit as st
 
 def apply_custom_style():
-    """注入自定义 CSS，实现高级清新风格"""
+    """注入自定义 CSS"""
     st.markdown("""
         <style>
-        /* 1. 全局字体与背景微调 */
-        .stApp {
-            background-color: #ffffff;
-        }
+        /* 1. 全局设置 */
+        .stApp { background-color: #ffffff; }
+        footer, #MainMenu { visibility: hidden; }
 
-        /* 2. 隐藏默认页脚和汉堡菜单 */
-        footer {visibility: hidden;}
-        #MainMenu {visibility: hidden;}
-
-        /* 3. 侧边栏样式优化 */
+        /* 2. 侧边栏 */
         [data-testid="stSidebar"] {
-            background-color: #f8f9fa; /* 极淡灰 */
+            background-color: #f8f9fa;
             border-right: 1px solid #e9ecef;
         }
         
-        /* 4. Radio 按钮美化 (导航栏) */
-        .stRadio > div {
-            background-color: transparent;
-            gap: 10px;
-        }
-        .stRadio label {
-            font-weight: 500 !important;
-            padding: 10px 15px;
+        /* 3. 输入框优化 (CFD参数) */
+        .stNumberInput > label { font-weight: 600; color: #495057; }
+        
+        /* 4. 知识库卡片伪装 */
+        /* 我们将把 st.button 样式化为卡片标题 */
+        div.stButton > button {
+            text-align: left;
+            border: 1px solid #e9ecef;
+            background-color: #fff;
+            color: #212529;
+            padding: 15px 20px;
             border-radius: 8px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .stRadio label:hover {
-            background-color: #e9ecef;
+        div.stButton > button:hover {
+            border-color: #339af0;
+            color: #1c7ed6;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            background-color: #f8f9fa;
+        }
+        div.stButton > button:active {
+            border-color: #1971c2;
+            color: #1864ab;
         }
 
-        /* 5. 知识库卡片样式 */
-        .card-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-            height: 100%;
-            margin-bottom: 15px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card-container:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-color: #dee2e6;
-        }
-        .card-tag {
-            display: inline-block;
-            background-color: #e7f5ff;
-            color: #1971c2;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #343a40;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .card-summary {
+        /* 5. 摘要文字样式 */
+        .article-summary {
             font-size: 14px;
             color: #868e96;
-            line-height: 1.6;
+            margin-top: -10px; /* 拉近与按钮的距离 */
+            margin-bottom: 20px;
+            padding-left: 5px;
         }
-        
-        /* 6. 按钮美化 */
-        div.stButton > button {
-            border-radius: 8px;
+        .article-tag {
+            font-size: 12px;
+            color: #adb5bd;
+            margin-bottom: 5px;
+            display: block;
         }
         </style>
     """, unsafe_allow_html=True)
 
-def render_article_card(article, index):
+def render_article_item(article, index):
     """
-    渲染单个文章卡片
-    返回: True (如果点击了按钮), False (未点击)
+    渲染单个文章条目
+    思路：直接用按钮显示标题，点击即跳转。摘要显示在按钮下方。
     """
     with st.container():
-        # HTML 视觉层
-        st.markdown(f"""
-        <div class="card-container">
-            <div class="card-tag">{article.get('tag', 'General')}</div>
-            <div class="card-title">{article['title']}</div>
-            <div class="card-summary">{article['summary']}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # 显示标签
+        st.markdown(f"<span class='article-tag'>🏷️ {article.get('tag', 'General')}</span>", unsafe_allow_html=True)
         
-        # 交互层：透明按钮覆盖或者下方按钮
-        # 这里的 key 必须唯一，所以使用了 index
-        if st.button(f"阅读 📖", key=f"read_btn_{index}", use_container_width=True):
+        # 1. 标题作为按钮 (全宽)
+        # 技巧：label 直接放标题，去掉之前的“阅读”字样
+        if st.button(f"📄 {article['title']}", key=f"art_{index}", use_container_width=True):
             return True
+            
+        # 2. 摘要显示为普通文本 (不可点，仅展示)
+        st.markdown(f"<div class='article-summary'>{article['summary']}</div>", unsafe_allow_html=True)
             
     return False

@@ -1,143 +1,172 @@
 import streamlit as st
 import os
 
-# 必须是第一个 Streamlit 命令
-st.set_page_config(
-    page_title="CFD 方腔流 Studio", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# 必须是第一行
+st.set_page_config(page_title="CFD Studio", layout="wide")
 
 from core.solver import solve_cavity
 from viz import plots
 from ui import layout, reader
 
-# 1. 注入 CSS 样式
+# 1. 注入样式
 layout.apply_custom_style()
 
-# 2. 初始化 Session State (用于记录文章阅读状态)
+# 2. 状态初始化
 if 'reading_article' not in st.session_state:
     st.session_state.reading_article = None
+if 'cfd_result' not in st.session_state:
+    st.session_state.cfd_result = None # 用于存储计算结果，防止刷新丢失
 
 # ==============================================================================
-# 侧边栏：全局导航与参数
+# 左侧栏：纯净导航
 # ==============================================================================
 with st.sidebar:
-    st.title("🌊 CFD Studio")
-    st.caption("Lid-Driven Cavity Flow Analysis")
+    st.image("https://cdn-icons-png.flaticon.com/512/5758/5758248.png", width=60) # 示例Logo
+    st.title("CFD Studio")
+    st.caption("方腔流模拟与分析平台")
     st.markdown("---")
     
-    # 模式选择 (去掉了临时文件预览)
+    # 模式选择 (三大模块并列)
     mode = st.radio(
-        "导航模式", 
-        ["CFD计算模拟", "知识库/文章"], 
+        "应用导航", 
+        ["项目介绍", "CFD计算模拟", "知识库/文章"], 
         label_visibility="collapsed"
     )
     
     st.markdown("---")
-
-    # 定义 CFD 参数字典 (仅在 CFD 模式下显示)
-    params = {}
-    run_btn = False
-    
-    if mode == "CFD计算模拟":
-        st.subheader("⚙️ 模拟参数")
-        params['Re'] = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0)
-        params['grid'] = st.slider("网格密度 (Nx=Ny)", 21, 121, 41, 10)
-        
-        with st.expander("🛠️ 高级设置"):
-            params['dt'] = st.number_input("时间步长", 0.0001, 0.1, 0.001, format="%.4f")
-            params['iter'] = st.number_input("最大迭代步", 500, 10000, 2000, step=500)
-            params['omega'] = st.slider("SOR 松弛因子", 1.0, 1.95, 1.8)
-            
-        st.markdown("<br>", unsafe_allow_html=True)
-        run_btn = st.button("🚀 开始计算", type="primary", use_container_width=True)
-
-    else:
-        # 知识库模式下的侧边栏信息
-        st.info("💡 在 catalog.json 中配置文章信息。")
-        if st.session_state.reading_article:
-            if st.button("⬅️ 返回文章列表", use_container_width=True):
-                st.session_state.reading_article = None
-                st.rerun()
+    st.markdown("Made with ❤️ by Streamlit")
 
 # ==============================================================================
-# 主界面逻辑
+# 模块 1: 项目介绍 (独立模块)
 # ==============================================================================
-
-# --- 场景 A: CFD 计算模拟 ---
-if mode == "CFD计算模拟":
-    # 切换回此模式时，重置阅读状态
+if mode == "项目介绍":
+    # 离开文章模式
     st.session_state.reading_article = None
     
-    st.header(f"🖥️ 二维方腔流数值模拟 (Re={params.get('Re', 100)})")
+    st.header("📖 项目介绍")
+    st.divider()
     
-    # 1. 如果点击了运行按钮，执行计算
-    if run_btn:
-        with st.spinner("正在求解 Navier-Stokes 方程..."):
-            try:
-                # 调用你的求解器
-                u, v, p = solve_cavity(
-                    params['Re'], params['grid'], params['grid'], 
-                    params['iter'], params['dt'], 1e-5, params['omega']
-                )
-                
-                # 展示结果
-                st.success("计算完成！")
-                tab1, tab2, tab3 = st.tabs(["🌪️ 速度云图", "〰️ 流线图", "🌡️ 压力场"])
-                with tab1: st.pyplot(plots.plot_velocity_magnitude(u, v, params['grid'], params['Re']))
-                with tab2: st.pyplot(plots.plot_streamlines(u, v, params['grid'], params['Re']))
-                with tab3: st.pyplot(plots.plot_pressure(p, params['grid'], params['Re']))
-                
-            except Exception as e:
-                st.error(f"计算发生错误: {e}")
-
-    # 2. 如果没开始计算，显示 About 页和项目介绍
+    # 1. 优先渲染 about.html
+    if os.path.exists("posts/about.html"):
+        reader.render_content("posts", "about.html")
     else:
-        # 渲染 About HTML
-        if os.path.exists("posts/about.html"):
-            st.markdown("### 项目介绍")
-            reader.render_content("posts", "about.html")
-        else:
-            st.info("👋 欢迎使用！请点击左侧 **'开始计算'** 按钮运行模拟。")
+        st.info("⚠️ 请在 posts/ 目录下创建 about.html 以显示介绍内容。")
+
+    # 2. 渲染 assets 图片 (作为补充)
+    # 遍历 assets 文件夹下的所有图片并展示
+    if os.path.exists("assets"):
+        images = [f for f in os.listdir("assets") if f.endswith(('.png', '.jpg', '.jpeg'))]
+        if images:
+            st.markdown("#### 📸 项目展示")
+            cols = st.columns(min(3, len(images))) # 最多3列
+            for idx, img_name in enumerate(images):
+                with cols[idx % 3]:
+                    st.image(os.path.join("assets", img_name), caption=img_name, use_container_width=True)
+
+# ==============================================================================
+# 模块 2: CFD 计算模拟 (参数在主界面)
+# ==============================================================================
+elif mode == "CFD计算模拟":
+    st.session_state.reading_article = None
+    st.header("🌪️ 方腔流数值模拟")
+    
+    # --- A. 参数设置区域 (主界面) ---
+    with st.container():
+        st.subheader("1. 参数设置")
+        
+        # 第一行参数
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            re_num = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0, help="决定流体惯性力与粘性力的比值")
+        with c2:
+            grid_size = st.slider("网格密度 (Nx=Ny)", 21, 201, 41, 10, help="网格越密计算越慢，但精度越高")
+        with c3:
+            time_step = st.number_input("时间步长 (dt)", 0.0001, 0.1, 0.001, format="%.4f")
             
-        # 渲染静态图片 (如果 assets 文件夹下有图片)
-        # 这里假设你可能会放一个示意图
-        example_img_path = os.path.join("assets", "cover.jpg") # 示例文件名
-        if os.path.exists(example_img_path):
-            st.image(example_img_path, caption="Lid-Driven Cavity Flow 示意图", use_column_width=True)
+        # 第二行参数
+        c4, c5, c6 = st.columns(3)
+        with c4:
+            max_iter = st.number_input("最大迭代步数", 500, 20000, 2000, step=500)
+        with c5:
+            omega = st.slider("SOR 松弛因子", 1.0, 1.95, 1.8, help="过大可能导致发散")
+        with c6:
+            # 占位，让布局对齐
+            st.empty()
+            
+        # 开始计算按钮 (全宽强调)
+        st.markdown("<br>", unsafe_allow_html=True)
+        start_btn = st.button("🚀 开始计算 / 更新参数", type="primary", use_container_width=True)
 
+    st.divider()
 
-# --- 场景 B: 知识库/文章 ---
+    # --- B. 计算逻辑与结果展示 ---
+    if start_btn:
+        with st.spinner(f"正在求解 Re={re_num}, Grid={grid_size}x{grid_size}..."):
+            try:
+                # 调用求解器
+                u, v, p = solve_cavity(re_num, grid_size, grid_size, max_iter, time_step, 1e-5, omega)
+                
+                # 将结果存入 Session State (虽然这里每次点击都重新算，但如果有复杂交互需要存)
+                st.session_state.cfd_result = {
+                    "u": u, "v": v, "p": p, 
+                    "re": re_num, "grid": grid_size
+                }
+                st.success("✅ 计算完成！")
+            except Exception as e:
+                st.error(f"计算出错: {e}")
+
+    # --- C. 结果显示 (如果存有结果) ---
+    if st.session_state.cfd_result:
+        res = st.session_state.cfd_result
+        st.subheader(f"2. 模拟结果 (Re={res['re']})")
+        
+        tab1, tab2, tab3 = st.tabs(["速度云图", "流线图", "压力场"])
+        
+        # 注意：这里需要传入 result 中的参数
+        with tab1: st.pyplot(plots.plot_velocity_magnitude(res['u'], res['v'], res['grid'], res['re']))
+        with tab2: st.pyplot(plots.plot_streamlines(res['u'], res['v'], res['grid'], res['re']))
+        with tab3: st.pyplot(plots.plot_pressure(res['p'], res['grid'], res['re']))
+    
+    else:
+        st.info("👆 请调整上方参数并点击“开始计算”以查看结果。")
+
+# ==============================================================================
+# 模块 3: 知识库/文章
+# ==============================================================================
 elif mode == "知识库/文章":
     
-    # 子场景 B1: 阅读详情页
+    # 场景 3.1: 阅读详情
     if st.session_state.reading_article:
         article = st.session_state.reading_article
-        st.header(article['title'])
-        st.caption(f"标签: {article.get('tag', '无')} | 文件: {article['file']}")
+        
+        # 顶部导航栏
+        col_back, col_title = st.columns([1, 5])
+        with col_back:
+            if st.button("⬅️ 返回列表", use_container_width=True):
+                st.session_state.reading_article = None
+                st.rerun()
+        with col_title:
+            st.markdown(f"### {article['title']}")
+        
         st.divider()
-        
-        # 渲染正文
         reader.render_content("posts", article['file'])
-        
-    # 子场景 B2: 文章卡片列表页
+
+    # 场景 3.2: 文章列表
     else:
         st.header("📚 知识库")
-        st.markdown("浏览 CFD 理论推导与案例分析报告。")
+        st.caption("点击下方卡片阅读文章")
         st.divider()
         
-        # 读取配置
         articles = reader.load_catalog("posts")
         
         if not articles:
-            st.warning("⚠️ 未找到文章配置。请在 `posts/catalog.json` 中添加内容。")
+            st.warning("⚠️ 暂无文章，请配置 posts/catalog.json")
         else:
-            # 3列布局
-            cols = st.columns(3)
+            # 双列布局 (比三列更宽，适合做标题按钮)
+            cols = st.columns(2) 
             for i, article in enumerate(articles):
-                with cols[i % 3]:
-                    # 渲染卡片，检测点击
-                    if layout.render_article_card(article, i):
+                with cols[i % 2]:
+                    # 渲染列表项
+                    if layout.render_article_item(article, i):
                         st.session_state.reading_article = article
-                        st.rerun() # 立即刷新进入详情页
+                        st.rerun()
