@@ -3,71 +3,67 @@ import os
 import streamlit.components.v1 as components
 
 # -----------------------------------------------------------------------------
-# 0. 核心兼容性设置 (防止报错)
+# 0. 核心兼容性设置
 # -----------------------------------------------------------------------------
-# 自动检测 Streamlit 版本，决定使用哪种缓存方式
 if hasattr(st, 'cache_data'):
-    # 新版 (Streamlit >= 1.18)
     cache_decorator = st.cache_data(show_spinner=False, ttl=3600)
 else:
-    # 旧版 (Streamlit < 1.18)
     cache_decorator = st.cache(show_spinner=False, ttl=3600, allow_output_mutation=True)
 
 # -----------------------------------------------------------------------------
-# 1. 文件读取 (带缓存 & 防乱码)
+# 1. 文件读取 (修复 BOM 和 空格问题)
 # -----------------------------------------------------------------------------
 
 def list_files(directory="posts"):
-    """列出目录下的 md 和 html 文件"""
     if not os.path.exists(directory):
         try:
             os.makedirs(directory)
         except OSError:
             return []
-            
-    # 获取文件并简单排序
     files = [f for f in os.listdir(directory) if f.lower().endswith(('.md', '.html'))]
     files.sort(key=lambda x: x.lower()) 
     return files
 
 @cache_decorator
 def load_file_content(file_path):
-    """只负责读取文件内容，处理 UTF-8 和 GBK 编码"""
+    """读取文件内容，自动处理 BOM 头和首尾空格"""
+    content = ""
     try:
-        # 首选 UTF-8
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
+        # 1. 尝试使用 utf-8-sig (专门解决 Windows 记事本保存的 BOM 问题)
+        with open(file_path, 'r', encoding='utf-8-sig') as f:
+            content = f.read()
     except UnicodeDecodeError:
-        # 备选 GBK (解决中文 Windows 文件乱码)
         try:
+            # 2. 如果失败，尝试 GBK (解决中文乱码)
             with open(file_path, 'r', encoding='gbk') as f:
-                return f.read()
+                content = f.read()
         except:
-            return f"❌ 无法读取文件编码: {os.path.basename(file_path)}"
+            # 3. 最后尝试 latin-1
+            with open(file_path, 'r', encoding='latin-1') as f:
+                content = f.read()
+
+    # 4. 关键修正：去除首尾看不见的空白字符
+    return content.strip()
 
 # -----------------------------------------------------------------------------
-# 2. 渲染逻辑 (最简化)
+# 2. 渲染逻辑 (最简模式)
 # -----------------------------------------------------------------------------
 
 def render_content(file_path):
-    """渲染文件内容"""
     if not os.path.exists(file_path):
         st.error(f"❌ 找不到文件: {file_path}")
         return
 
-    # 获取后缀名
     _, ext = os.path.splitext(file_path)
     ext = ext.lower()
 
     try:
-        # 读取内容 (使用上面的缓存函数)
         content = load_file_content(file_path)
 
-        # 渲染 Markdown
         if ext == '.md':
+            # 渲染 Markdown
             st.markdown(content, unsafe_allow_html=True)
             
-        # 渲染 HTML
         elif ext == '.html':
             components.html(content, height=800, scrolling=True)
 
@@ -75,17 +71,15 @@ def render_content(file_path):
         st.error(f"渲染出错: {e}")
 
 # -----------------------------------------------------------------------------
-# 3. 简单的预览功能
+# 3. 预览功能
 # -----------------------------------------------------------------------------
 
 def show_file_uploader_preview():
-    uploaded_file = st.file_uploader("文件预览 (仅临时)", type=['md', 'html'])
+    uploaded_file = st.file_uploader("文件预览", type=['md', 'html'])
     
     if uploaded_file is not None:
         try:
-            # 读取上传的文件
-            content = uploaded_file.getvalue().decode("utf-8", errors='ignore')
-            
+            content = uploaded_file.getvalue().decode("utf-8-sig", errors='ignore') # 预览也加了 sig
             if uploaded_file.name.endswith('.md'):
                 st.markdown(content, unsafe_allow_html=True)
             else:
