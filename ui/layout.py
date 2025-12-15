@@ -1,53 +1,46 @@
 import streamlit as st
+import os
 
 def setup_page():
-    """配置页面标题和基本布局"""
-    st.set_page_config(page_title="CFD 方腔流模拟", layout="wide")
-    st.title("🌊 Lid-Driven Cavity Flow Solver")
+    st.set_page_config(page_title="CFD 方腔流 & 知识库", layout="wide")
+    st.title("🌊 Lid-Driven Cavity Flow Studio")
     st.markdown("---")
 
 def sidebar_navigation():
-    """侧边栏导航与参数设置"""
     with st.sidebar:
-        st.header("导航")
-        # 允许用户切换“计算模式”或“浏览外部网页”
-        mode = st.radio("选择功能", ["CFD 计算模拟", "查看参考文档/网页"])
+        st.header("功能导航")
+        # 增加了 '知识库 / 文章' 选项
+        mode = st.radio("选择模式", ["CFD 计算模拟", "知识库 / 文章", "临时文件预览"])
         
         st.divider()
         
         params = {}
+        selected_post = None
+
+        # --- 模式 1: 计算 ---
         if mode == "CFD 计算模拟":
             st.header("模拟参数")
-            params['Re'] = st.number_input("雷诺数 (Re)", 1.0, 2000.0, 100.0, 10.0)
-            params['grid'] = st.slider("网格密度 (Nx=Ny)", 21, 81, 41, 10)
+            params['Re'] = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0)
+            params['grid'] = st.slider("网格密度 (Nx=Ny)", 21, 121, 41, 10)
             st.subheader("高级设置")
-            params['dt'] = st.number_input("时间步长 (dt)", value=0.001, format="%.4f")
-            params['iter'] = st.number_input("最大迭代", value=2000, step=500)
+            params['dt'] = st.number_input("时间步长", 0.001, format="%.4f")
+            params['iter'] = st.number_input("最大迭代", 2000, step=500)
             params['omega'] = st.slider("SOR 因子", 1.0, 1.95, 1.8)
-            
             params['run_btn'] = st.button("🚀 开始计算", type="primary")
+
+        # --- 模式 2: 文章列表 ---
+        elif mode == "知识库 / 文章":
+            st.header("文章列表")
+            # 动态读取 posts 文件夹下的文件
+            post_files = [f for f in os.listdir("posts") if f.endswith(('.md', '.html'))] if os.path.exists("posts") else []
+            
+            if post_files:
+                selected_post = st.selectbox("选择文章阅读", post_files)
+            else:
+                st.warning("posts 文件夹为空")
         
-        else:
-            st.info("在此模式下，您可以查看嵌入的外部网页。")
-            params = None
+        # --- 模式 3: 临时上传 ---
+        elif mode == "临时文件预览":
+            st.markdown("用于快速查看本地的 Markdown 或 HTML 导出报告。")
 
-    return mode, params
-
-def render_external_page():
-    """嵌入外部网页的示例"""
-    st.subheader("📚 参考文档 / 外部链接")
-    url = st.text_input("输入网址 (需支持 iframe)", "https://wenxintuanliu.github.io/")
-    try:
-        # 使用 Streamlit 组件嵌入网页
-        st.components.v1.iframe(src=url, height=800, scrolling=True)
-    except Exception as e:
-        st.error(f"无法加载网页: {e}")
-
-def show_theory_expander():
-    """显示底部的理论说明"""
-    with st.expander("ℹ️ 关于此求解器 (理论背景)"):
-        st.markdown("""
-        *   **数值方法**: 投影法 (Projection Method)
-        *   **架构**: 核心算法与前端展示分离 (Modular Design)
-        *   **网格**: 交错网格 (MAC Grid)
-        """)
+    return mode, params, selected_post
