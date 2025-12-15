@@ -70,7 +70,7 @@ if mode == "CFD计算模拟":
     # 切换回此模式时，重置阅读状态
     st.session_state.reading_article = None
     
-    st.header(f"🖥️ 方腔流数值模拟 (Re={params.get('Re', 100)})")
+    st.header(f"🖥️ 二维方腔流数值模拟 (Re={params.get('Re', 100)})")
     
     # 1. 如果点击了运行按钮，执行计算
     if run_btn:
@@ -103,7 +103,7 @@ if mode == "CFD计算模拟":
             
         # 渲染静态图片 (如果 assets 文件夹下有图片)
         # 这里假设你可能会放一个示意图
-        example_img_path = os.path.join("assets", "intro.png") # 示例文件名
+        example_img_path = os.path.join("assets", "cover.jpg") # 示例文件名
         if os.path.exists(example_img_path):
             st.image(example_img_path, caption="Lid-Driven Cavity Flow 示意图", use_column_width=True)
 
