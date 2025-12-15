@@ -24,25 +24,18 @@ def apply_custom_style():
         /* 3. CFD 参数按钮：零背景风格 (Ghost Style) */
         /* 正常状态 */
         [data-testid="stNumberInput"] button {
-            background-color: transparent !important;
-            border: 1px solid #dee2e6 !important;
-            color: #000000 !important;                /* 改为纯黑色 */
-            border-radius: 4px !important;
-            transition: all 0.2s ease;
+            background-color: transparent !important; /* 去掉背景色 */
+            border: 1px solid #ced4da !important;     /* 加灰色边框 */
+            color: #495057 !important;                /* 深灰字 */
+            transition: all 0.2s;
         }
-
         [data-testid="stNumberInput"] button:hover {
-            background-color: transparent !important;
-            border-color: #000000 !important;
-            color: #000000 !important;
-            transform: translateY(-1px);              /* 添加跳动效果 */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            border-color: #339af0 !important;         /* 悬停变蓝 */
+            color: #228be6 !important;
+            background-color: #e7f5ff !important;
         }
-
         [data-testid="stNumberInput"] button:active {
-            transform: translateY(0) scale(0.98);
-            background-color: #f8f9fa !important;
-            box-shadow: none !important;
+            background-color: #d0ebff !important;
         }
 
         /* 4. 开始计算按钮 */
