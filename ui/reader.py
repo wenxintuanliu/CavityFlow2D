@@ -1,7 +1,7 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import json
-import re
 
 def load_catalog(directory="posts"):
     """读取 catalog.json 配置文件"""
@@ -31,29 +31,8 @@ def load_file_content(file_path):
             return None 
     return content.strip()
 
-def _render_html_strict(content):
-    """
-    严格的 HTML 渲染模式。
-    防止 Streamlit 将 HTML 误判为 Markdown 代码块。
-    """
-    # 1. 移除可能的 HTML 文档声明，只保留 body 内容（如果存在）
-    # 简单的正则匹配，提取 body 内部
-    body_match = re.search(r'<body[^>]*>(.*?)</body>', content, re.DOTALL | re.IGNORECASE)
-    if body_match:
-        content = body_match.group(1)
-        
-    # 2. 包裹在一个 div 中，并确保没有前导空格
-    # Streamlit Markdown 如果遇到 4 个空格缩进，会变成代码块
-    # 我们压缩每一行的空格，或者简单地包裹
-    html_block = f"""
-    <div style="font-family: sans-serif; line-height: 1.6;">
-        {content}
-    </div>
-    """
-    st.markdown(html_block, unsafe_allow_html=True)
-
 def render_content(directory, filename):
-    """通用渲染入口"""
+    """渲染内容"""
     file_path = os.path.join(directory, filename)
     content = load_file_content(file_path)
     
@@ -66,9 +45,14 @@ def render_content(directory, filename):
 
     try:
         if ext == '.md':
+            # Markdown 依然用原生渲染
             st.markdown(content, unsafe_allow_html=True)
         elif ext == '.html':
-            _render_html_strict(content)
+            # 【重要修改】回归 iframe 渲染方式
+            # 1. 解决源码显示问题：iframe 内部是独立浏览器环境，绝对不会显示代码。
+            # 2. 解决滚动问题：scrolling=True 允许内容滚动。
+            # 3. height=800：给一个足够的高度，如果内容更长则会出现滚动条。
+            components.html(content, height=800, scrolling=True)
         else:
             st.text(content)
     except Exception as e:

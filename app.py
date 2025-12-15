@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-# 1. 页面配置 (必须是第一行)
+# 1. 页面配置
 st.set_page_config(page_title="CFD Studio", layout="wide")
 
 from core.solver import solve_cavity
@@ -18,16 +18,14 @@ if 'cfd_result' not in st.session_state:
     st.session_state.cfd_result = None
 
 # ==============================================================================
-# 左侧栏 (Sidebar) - 固定布局防止跳动
+# 左侧栏 (Sidebar) - 固定头部防止跳动
 # ==============================================================================
 with st.sidebar:
-    # 技巧：使用 container 锁定头部高度和布局
+    # 头部固定区域
     with st.container():
-        # 图标和标题
-        # 请确保网络畅通，或者换成本地图片路径
         st.image("https://cdn-icons-png.flaticon.com/512/5758/5758248.png", width=60)
         st.title("CFD Studio")
-        st.caption("Ver 4.0 | Ultimate Edition")
+        st.caption("Ver 4.1 | Stable Release")
     
     st.markdown("---")
     
@@ -40,7 +38,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # 版权页脚 (HTML CSS定位)
+    # 版权页脚 (无背景，高级黑)
     st.markdown('<div class="sidebar-copyright">© 2025 chunfengfusu. Some rights reserved.</div>', unsafe_allow_html=True)
 
 # ==============================================================================
@@ -52,12 +50,12 @@ if mode == "项目介绍":
     st.header("📖 项目介绍")
     st.divider()
     
-    # A. 渲染文字 (修复版：严格HTML渲染)
-    # 确保 posts/about.html 存在，否则可以创建测试文件
+    # A. 渲染文字
+    # 现在使用的是 iframe 渲染，如果你的 html 里有滚动条，这里就会显示滚动条
     if os.path.exists("posts/about.html"):
         reader.render_content("posts", "about.html")
     else:
-        st.warning("⚠️ 文件 posts/about.html 不存在")
+        st.info("ℹ️ posts/about.html 未找到")
 
     st.markdown("---")
 
@@ -65,7 +63,7 @@ if mode == "项目介绍":
     img_path = os.path.join("assets", "cover.jpg")
     if os.path.exists(img_path):
         st.markdown("#### 📸 可视化展示")
-        # 1:2:1 布局居中
+        # 1:2:1 布局
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             st.image(img_path, caption="Lid-Driven Cavity Flow Result", use_container_width=True)
@@ -77,7 +75,7 @@ elif mode == "CFD计算模拟":
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
     
-    # A. 参数表单 (Input 样式已在 layout.py 修复为线框风格)
+    # A. 参数表单 (CSS 已去除按钮背景色)
     with st.form("cfd_params_form"):
         st.subheader("1. 模拟参数配置")
         
@@ -132,7 +130,6 @@ elif mode == "知识库/文章":
     if st.session_state.reading_article:
         article = st.session_state.reading_article
         
-        # 顶部返回栏
         col_btn, col_txt = st.columns([1, 6])
         with col_btn:
             if st.button("⬅️ 返回", use_container_width=True):
@@ -143,7 +140,7 @@ elif mode == "知识库/文章":
             
         st.divider()
         
-        # 渲染文章内容 (修复版：HTML不会显示源代码)
+        # 文章内容渲染 (这里如果是 html 文件，也会用 iframe，解决源码外泄问题)
         reader.render_content("posts", article['file'])
 
     else:
