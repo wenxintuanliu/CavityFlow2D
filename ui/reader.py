@@ -47,8 +47,8 @@ def render_content(directory, filename):
         if ext == '.md':
             st.markdown(content, unsafe_allow_html=True)
         elif ext == '.html':
-            # 修改：使用 markdown 渲染 HTML 以消除 iframe 滚动条
-            # 注意：这要求 HTML 最好是片段形式（div/p等），不要包含完整的 html/body 标签
+            # 核心修改：使用 unsafe_allow_html=True 直接渲染 HTML 字符串
+            # 这样 HTML 就会融入页面，没有 iframe，也就没有滚动条
             st.markdown(content, unsafe_allow_html=True)
     except Exception as e:
         st.error(f"渲染出错: {e}")
