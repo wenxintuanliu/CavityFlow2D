@@ -21,21 +21,38 @@ def apply_custom_style():
             color: #000;
         }
 
-        /* 3. CFD 参数按钮：零背景风格 (Ghost Style) */
-        /* 正常状态 */
+        /* 3. CFD 参数按钮：零背景 + 纯黑符号风格 */
+        
+        /* 默认状态 */
         [data-testid="stNumberInput"] button {
-            background-color: transparent !important; /* 去掉背景色 */
-            border: 1px solid #ced4da !important;     /* 加灰色边框 */
-            color: #495057 !important;                /* 深灰字 */
-            transition: all 0.2s;
+            background-color: transparent !important; /* 透明背景 */
+            border: 1px solid #dee2e6 !important;     /* 浅灰边框 */
+            color: #000000 !important;                /* 强制符号纯黑 */
+            border-radius: 4px !important;
+            transition: all 0.2s ease;
         }
+
+        /* 鼠标悬停状态 */
         [data-testid="stNumberInput"] button:hover {
-            border-color: #339af0 !important;         /* 悬停变蓝 */
-            color: #228be6 !important;
-            background-color: #e7f5ff !important;
+            background-color: transparent !important; /* 保持透明 */
+            border-color: #000000 !important;         /* 边框变黑，提示可点击 */
+            color: #000000 !important;                /* 符号保持纯黑 */
+            transform: translateY(-1px);              /* 微微上浮 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
         }
+
+        /* 鼠标按下/点击状态 */
         [data-testid="stNumberInput"] button:active {
-            background-color: #d0ebff !important;
+            background-color: transparent !important; /* 点击时不许变色 */
+            border-color: #000000 !important;
+            color: #000000 !important;                /* 点击时符号保持纯黑 */
+            transform: translateY(0) scale(0.96);     /* 按压效果 */
+            box-shadow: none !important;
+        }
+        
+        /* 双重保险：强制内部 SVG 图标也是黑色 */
+        [data-testid="stNumberInput"] button svg {
+            fill: #000000 !important;
         }
 
         /* 4. 开始计算按钮 */
@@ -82,7 +99,7 @@ def apply_custom_style():
             width: 260px;
             font-size: 12px;
             font-weight: 500;
-            color: #333333;   /* 高级黑 (Charcoal) */
+            color: #333333;   /* 高级黑 */
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             text-align: center;
             pointer-events: none;
@@ -94,7 +111,7 @@ def apply_custom_style():
 
 def render_card_standard(article, index):
     with st.container(border=True):
-        st.markdown(f":grey-background[**{article.get('tag', 'Article')}**]") # 改为灰色背景标签，更稳重
+        st.markdown(f":grey-background[**{article.get('tag', 'Article')}**]")
         st.markdown(f"#### {article['title']}")
         st.caption(f"{article['summary']}")
         if st.button("阅读文章 ➜", key=f"read_{index}", use_container_width=True):
