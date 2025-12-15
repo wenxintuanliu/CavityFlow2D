@@ -21,11 +21,12 @@ if 'cfd_result' not in st.session_state:
 # 左侧栏 (侧边栏)
 # ==============================================================================
 with st.sidebar:
-    st.title("🌊 CFD Studio")
-    st.caption("Ver 3.0 | Pro Edition")
+    st.image("https://cdn-icons-png.flaticon.com/512/5758/5758248.png", width=50)
+    st.title("CFD Studio")
+    st.caption("Ver 3.5 | Ultimate UI")
     st.markdown("---")
     
-    # 模式选择 (layout.py 已优化间距)
+    # 导航菜单
     mode = st.radio(
         "导航菜单", 
         ["项目介绍", "CFD计算模拟", "知识库/文章"], 
@@ -33,6 +34,9 @@ with st.sidebar:
     )
     
     st.markdown("---")
+    
+    # 4. 版权页脚 (通过 CSS .sidebar-copyright 固定在底部)
+    st.markdown('<div class="sidebar-copyright">© 2025 chunfengfusu. Some rights reserved.</div>', unsafe_allow_html=True)
 
 # ==============================================================================
 # 模块 1: 项目介绍
@@ -43,33 +47,21 @@ if mode == "项目介绍":
     st.header("📖 项目介绍")
     st.divider()
     
-    # A. 渲染文字 (HTML 直接嵌入，无滚动条)
+    # A. 渲染文字 (HTML 模式)
     if os.path.exists("posts/about.html"):
         reader.render_content("posts", "about.html")
     else:
-        st.info("⚠️ 暂无介绍内容，请创建 posts/about.html")
+        st.info("⚠️ 请创建 posts/about.html")
 
     st.markdown("---")
 
-    # B. 渲染图片 (assets/cover.jpg)
-    # 需求：右侧栏正中间，只显示一张图，保持大小
+    # B. 渲染图片 (居中)
     img_path = os.path.join("assets", "cover.jpg")
-    
     if os.path.exists(img_path):
         st.markdown("#### 📸 可视化展示")
-        
-        # 使用列布局来居中: [空, 图片内容, 空]
-        # 比例 1:2:1 可以让中间占据一半宽度，或者根据需要调整
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             st.image(img_path, caption="Lid-Driven Cavity Flow Result", use_container_width=True)
-    elif os.path.exists("assets"):
-        # 如果 cover.jpg 不存在，随便找一张
-        images = [f for f in os.listdir("assets") if f.endswith(('.png', '.jpg'))]
-        if images:
-            c1, c2, c3 = st.columns([1, 2, 1])
-            with c2:
-                st.image(os.path.join("assets", images[0]), caption=images[0], use_container_width=True)
 
 # ==============================================================================
 # 模块 2: CFD 计算模拟
@@ -78,9 +70,7 @@ elif mode == "CFD计算模拟":
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
     
-    # --- A. 参数设置 (使用 Form 表单) ---
-    # 核心修改：使用 st.form 包裹所有输入控件
-    # 这样修改参数时，页面不会立刻刷新下面的结果，只有点按钮才会提交
+    # A. 参数表单
     with st.form("cfd_params_form"):
         st.subheader("1. 模拟参数配置")
         
@@ -95,44 +85,36 @@ elif mode == "CFD计算模拟":
         with c6: st.write("") # 占位
         
         st.markdown("<br>", unsafe_allow_html=True)
-        # 表单提交按钮
+        # 这里的按钮样式已被 CSS 强化
         submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)", use_container_width=True)
 
     st.divider()
 
-    # --- B. 计算逻辑 ---
+    # B. 计算逻辑
     if submitted:
         with st.spinner("正在进行 N-S 方程求解..."):
             try:
                 u, v, p = solve_cavity(re_num, grid_size, grid_size, max_iter, time_step, 1e-5, omega)
-                # 保存结果到 Session State
                 st.session_state.cfd_result = {"u": u, "v": v, "p": p, "re": re_num, "grid": grid_size}
                 st.success("✅ 计算完成")
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # --- C. 结果展示 ---
-    # 即使页面因为其他原因刷新，只要 session_state 里有结果，就会显示
-    # 而且因为上面用了 Form，单纯调参数不会让这里闪烁
+    # C. 结果展示
     if st.session_state.cfd_result:
         res = st.session_state.cfd_result
         st.subheader(f"2. 模拟结果可视化 (Re={res['re']})")
         
-        # 3 列并排显示图片
         plot_cols = st.columns(3)
-        
         with plot_cols[0]:
             fig1 = plots.plot_velocity_magnitude(res['u'], res['v'], res['grid'], res['re'])
             layout.render_plot_with_caption(fig1, "Velocity Magnitude", "#e7f5ff")
-            
         with plot_cols[1]:
             fig2 = plots.plot_streamlines(res['u'], res['v'], res['grid'], res['re'])
             layout.render_plot_with_caption(fig2, "Streamlines", "#fff3bf")
-            
         with plot_cols[2]:
             fig3 = plots.plot_pressure(res['p'], res['grid'], res['re'])
             layout.render_plot_with_caption(fig3, "Pressure Field", "#ffe3e3")
-            
     else:
         st.info("👆 请设置参数并点击“开始计算”按钮。")
 
@@ -141,7 +123,6 @@ elif mode == "CFD计算模拟":
 # ==============================================================================
 elif mode == "知识库/文章":
     
-    # 场景 3.1: 阅读详情
     if st.session_state.reading_article:
         article = st.session_state.reading_article
         col_btn, col_txt = st.columns([1, 6])
@@ -155,19 +136,17 @@ elif mode == "知识库/文章":
         st.divider()
         reader.render_content("posts", article['file'])
 
-    # 场景 3.2: 列表页
     else:
         st.header("📚 知识库")
         st.divider()
         
         articles = reader.load_catalog("posts")
         if articles:
-            # 3 列布局
             cols = st.columns(3)
             for i, article in enumerate(articles):
                 with cols[i % 3]:
-                    # 核心修改：使用统一的卡片渲染函数
-                    if layout.render_article_card_unified(article, i):
+                    # 采用更稳健、更好看的卡片布局方案
+                    if layout.render_card_standard(article, i):
                         st.session_state.reading_article = article
                         st.rerun()
         else:

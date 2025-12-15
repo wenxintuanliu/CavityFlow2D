@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import json
-import streamlit.components.v1 as components
 
 def load_catalog(directory="posts"):
     """读取 catalog.json 配置文件"""
@@ -16,7 +15,7 @@ def load_catalog(directory="posts"):
         return []
 
 def load_file_content(file_path):
-    """读取文件内容"""
+    """读取文件内容，处理编码"""
     if not os.path.exists(file_path):
         return None
     content = ""
@@ -47,8 +46,9 @@ def render_content(directory, filename):
         if ext == '.md':
             st.markdown(content, unsafe_allow_html=True)
         elif ext == '.html':
-            # 核心修改：使用 unsafe_allow_html=True 直接渲染 HTML 字符串
-            # 这样 HTML 就会融入页面，没有 iframe，也就没有滚动条
-            st.markdown(content, unsafe_allow_html=True)
+            # 核心修改：包裹一层 div 确保它被作为 HTML 块渲染
+            # 这样浏览器会解析 tags 而不是显示代码
+            html_block = f'<div class="custom-html-container">{content}</div>'
+            st.markdown(html_block, unsafe_allow_html=True)
     except Exception as e:
         st.error(f"渲染出错: {e}")
