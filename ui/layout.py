@@ -24,26 +24,35 @@ def apply_custom_style():
         /* 3. CFD 参数按钮：零背景风格 (Ghost Style) */
         /* 正常状态 */
         [data-testid="stNumberInput"] button {
-            background-color: transparent !important; /* 必须透明 */
-            border: 1px solid #dee2e6 !important;     /* 浅灰边框 */
-            color: #343a40 !important;                /* 深灰/黑色文字 */
+            background-color: transparent !important; /* 完全透明背景 */
+            border: 1px solid #dee2e6 !important;     /* 浅灰色边框 */
+            color: #000000 !important;                /* 纯黑色文字 */
             border-radius: 4px !important;
             transition: all 0.2s ease;
+            box-shadow: none !important;              /* 移除默认阴影 */
         }
-        /* 鼠标悬停状态 - 坚决不要背景色 */
+
+        /* 鼠标悬停状态 - 轻微跳动效果 */
         [data-testid="stNumberInput"] button:hover {
-            background-color: transparent !important; /* 保持透明，不要变蓝 */
-            border-color: #495057 !important;         /* 边框变深一点点 */
-            color: #000000 !important;                /* 文字变纯黑 */
+            background-color: transparent !important;  /* 保持透明背景 */
+            border-color: #495057 !important;          /* 边框变深 */
+            color: #212529 !important;                /* 文字稍浅一些，创造跳动感 */
+            transform: translateY(-1px);              /* 轻微上移，创造跳动感 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important; /* 添加轻微阴影 */
         }
+
         /* 点击按下状态 */
         [data-testid="stNumberInput"] button:active {
-            transform: scale(0.96);
-            background-color: #f1f3f5 !important;     /* 仅在按下瞬间给极淡的灰反馈 */
+            transform: translateY(0) scale(0.98);     /* 回到原位并轻微缩小 */
+            background-color: #f8f9fa !important;     /* 按下时轻微灰色反馈 */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important; /* 更小的阴影 */
         }
-        /* 去掉按钮中间的分割线（如果有） */
-        [data-testid="stNumberInput"] > div {
-            border-color: #dee2e6;
+
+        /* 焦点状态 */
+        [data-testid="stNumberInput"] button:focus {
+            outline: none !important;                 /* 移除默认焦点轮廓 */
+            border-color: #007bff !important;         /* 蓝色边框指示焦点 */
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important; /* 轻微蓝色光晕 */
         }
 
         /* 4. 开始计算按钮 */
