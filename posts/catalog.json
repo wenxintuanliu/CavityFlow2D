@@ -1,0 +1,14 @@
+[
+  {
+    "file": "dmd_theory.md",
+    "title": "标准DMD算法理论",
+    "summary": "详细推导了动态模态分解（DMD）的核心数学原理，包含SVD分解步骤。",
+    "tag": "理论基础"
+  },
+  {
+    "file": "case_study.html",
+    "title": "圆柱绕流案例分析",
+    "summary": "基于OpenFOAM计算数据的流场可视化与模态提取分析报告。",
+    "tag": "案例展示"
+  }
+]

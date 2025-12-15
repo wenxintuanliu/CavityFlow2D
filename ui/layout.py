@@ -1,46 +1,103 @@
 import streamlit as st
-import os
 
-def setup_page():
-    st.set_page_config(page_title="CFD 方腔流 & 知识库", layout="wide")
-    st.title("🌊 Lid-Driven Cavity Flow Studio")
-    st.markdown("---")
+def apply_custom_style():
+    """注入自定义 CSS，实现高级清新风格"""
+    st.markdown("""
+        <style>
+        /* 1. 全局字体与背景微调 */
+        .stApp {
+            background-color: #ffffff;
+        }
 
-def sidebar_navigation():
-    with st.sidebar:
-        st.header("功能导航")
-        # 增加了 '知识库 / 文章' 选项
-        mode = st.radio("选择模式", ["CFD 计算模拟", "知识库 / 文章", "临时文件预览"])
+        /* 2. 隐藏默认页脚和汉堡菜单 */
+        footer {visibility: hidden;}
+        #MainMenu {visibility: hidden;}
+
+        /* 3. 侧边栏样式优化 */
+        [data-testid="stSidebar"] {
+            background-color: #f8f9fa; /* 极淡灰 */
+            border-right: 1px solid #e9ecef;
+        }
         
-        st.divider()
+        /* 4. Radio 按钮美化 (导航栏) */
+        .stRadio > div {
+            background-color: transparent;
+            gap: 10px;
+        }
+        .stRadio label {
+            font-weight: 500 !important;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .stRadio label:hover {
+            background-color: #e9ecef;
+        }
+
+        /* 5. 知识库卡片样式 */
+        .card-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            height: 100%;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #dee2e6;
+        }
+        .card-tag {
+            display: inline-block;
+            background-color: #e7f5ff;
+            color: #1971c2;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #343a40;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .card-summary {
+            font-size: 14px;
+            color: #868e96;
+            line-height: 1.6;
+        }
         
-        params = {}
-        selected_post = None
+        /* 6. 按钮美化 */
+        div.stButton > button {
+            border-radius: 8px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-        # --- 模式 1: 计算 ---
-        if mode == "CFD 计算模拟":
-            st.header("模拟参数")
-            params['Re'] = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0)
-            params['grid'] = st.slider("网格密度 (Nx=Ny)", 21, 121, 41, 10)
-            st.subheader("高级设置")
-            params['dt'] = st.number_input("时间步长", 0.001, format="%.4f")
-            params['iter'] = st.number_input("最大迭代", 2000, step=500)
-            params['omega'] = st.slider("SOR 因子", 1.0, 1.95, 1.8)
-            params['run_btn'] = st.button("🚀 开始计算", type="primary")
-
-        # --- 模式 2: 文章列表 ---
-        elif mode == "知识库 / 文章":
-            st.header("文章列表")
-            # 动态读取 posts 文件夹下的文件
-            post_files = [f for f in os.listdir("posts") if f.endswith(('.md', '.html'))] if os.path.exists("posts") else []
+def render_article_card(article, index):
+    """
+    渲染单个文章卡片
+    返回: True (如果点击了按钮), False (未点击)
+    """
+    with st.container():
+        # HTML 视觉层
+        st.markdown(f"""
+        <div class="card-container">
+            <div class="card-tag">{article.get('tag', 'General')}</div>
+            <div class="card-title">{article['title']}</div>
+            <div class="card-summary">{article['summary']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 交互层：透明按钮覆盖或者下方按钮
+        # 这里的 key 必须唯一，所以使用了 index
+        if st.button(f"阅读 📖", key=f"read_btn_{index}", use_container_width=True):
+            return True
             
-            if post_files:
-                selected_post = st.selectbox("选择文章阅读", post_files)
-            else:
-                st.warning("posts 文件夹为空")
-        
-        # --- 模式 3: 临时上传 ---
-        elif mode == "临时文件预览":
-            st.markdown("用于快速查看本地的 Markdown 或 HTML 导出报告。")
-
-    return mode, params, selected_post
+    return False
