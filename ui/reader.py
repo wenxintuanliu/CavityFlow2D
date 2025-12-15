@@ -1,97 +1,84 @@
-import streamlit as st
 import os
 import streamlit.components.v1 as components
-
+import re  # <--- 1. 引入正则表达式模块
 # -----------------------------------------------------------------------------
-# 1. 辅助函数：文件列表与读取
+# 1. 辅助函数
 # -----------------------------------------------------------------------------
-
 def list_files(directory="posts"):
-    """
-    列出指定目录下的 md 和 html 文件，并按文件名排序
-    """
+    """列出文件并排序"""
     if not os.path.exists(directory):
         try:
             os.makedirs(directory)
         except OSError:
-            st.error(f"无法创建目录: {directory}")
             return []
-    
-    # 获取文件并排序 (忽略大小写排序)
-    files = [
-        f for f in os.listdir(directory) 
-        if f.lower().endswith(('.md', '.html'))
-    ]
+    files = [f for f in os.listdir(directory) if f.lower().endswith(('.md', '.html'))]
     files.sort(key=lambda x: x.lower()) 
     return files
-
 @st.cache_data(show_spinner=False, max_entries=50, ttl=3600)
 def load_file_content(file_path):
-    """
-    读取文件内容，带缓存控制和编码自动回退。
-    max_entries=50: 最多缓存50个文件的内容，防止内存爆炸
-    ttl=3600: 缓存有效期1小时，方便你更新文章后能看到变化
-    """
-    # 尝试 UTF-8 (标准)
+    """读取文件内容，自动修复 Markdown 格式问题"""
+    content = ""
+    # 1. 读取文件 (处理编码)
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
+            content = f.read()
     except UnicodeDecodeError:
-        # 如果失败，尝试 GBK (中文 Windows 常见)
         try:
             with open(file_path, 'r', encoding='gbk') as f:
-                return f.read()
-        except Exception:
-            # 最后尝试 Latin-1 (保证不报错，但可能乱码)
+                content = f.read()
+        except:
             with open(file_path, 'r', encoding='latin-1') as f:
-                return f.read()
-
+                content = f.read()
+    # 2. 自动修复格式问题 (针对你的问题)
+    # 正则逻辑：如果发现 "### 标题" 紧接着换行后是 "1. " 或 "- " 或 "* "
+    # 就在它们中间强行插入两个换行符
+    if file_path.lower().endswith('.md'):
+        # pattern 解释:
+        # (^#{1,6} .*)  --> 捕获组1: 行首的 # 号标题
+        # \n            --> 紧接着的一个换行
+        # ([0-9]+\.|-|\*) --> 捕获组2: 数字列表(1.) 或 无序列表(- 或 *)
+        pattern = r'(^#{1,6} .*)\n([0-9]+\.|-|\*)'
+        
+        # 替换为: 组1 + \n\n + 组2
+        content = re.sub(pattern, r'\1\n\n\2', content, flags=re.MULTILINE)
+    return content
 # -----------------------------------------------------------------------------
-# 2. 核心渲染逻辑
+# 2. 渲染逻辑
 # -----------------------------------------------------------------------------
-
 def render_content(file_path):
-    """根据文件后缀渲染内容，带加载提示与异常处理"""
     if not os.path.exists(file_path):
         st.error(f"❌ 找不到文件: {file_path}")
         return
-
     file_name = os.path.basename(file_path)
     file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
     _, ext = os.path.splitext(file_path)
     ext = ext.lower()
-
-    # 安全检查：如果文件大于 20MB，给予警告
     if file_size_mb > 20:
-        st.warning(f"⚠️ 注意：此文件较大 ({file_size_mb:.1f} MB)，浏览器渲染可能需要几秒钟，请耐心等待。")
-
+        st.warning(f"⚠️ 文件较大 ({file_size_mb:.1f} MB)，渲染可能需要一点时间。")
     try:
-        # 使用 spinner 包裹读取和渲染过程
-        with st.spinner(f"正在加载 {file_name} ..."):
-            
-            # 1. 读取数据 (命中缓存则瞬间完成)
+        with st.spinner(f"正在渲染 {file_name} ..."):
             content = load_file_content(file_path)
             
-            # 2. 渲染 Markdown
             if ext == '.md':
-                # 添加样式优化，防止图片过大溢出
+                # Latex 增强配置
                 st.markdown(
                     f"""
-                    <div style="word-wrap: break-word;">
-                        {content}
+                    <div class="markdown-text">
+                    {content}
                     </div>
-                    <style>img {{max-width: 100%;}}</style>
+                    <style>
+                        img {{max-width: 100%;}} 
+                        .markdown-text {{line-height: 1.6;}}
+                    </style>
                     """, 
                     unsafe_allow_html=True
                 )
                 
-            # 3. 渲染 HTML
             elif ext == '.html':
-                # HTML 组件是 iframe，渲染非常大的 HTML 可能会让浏览器卡顿
                 components.html(content, height=800, scrolling=True)
                 
     except Exception as e:
-        st.error(f"❌ 渲染文件时发生错误: {str(e)}")
+        st.error(f"❌ 错误: {str(e)}")
 
 # -----------------------------------------------------------------------------
 # 3. 临时预览功能
