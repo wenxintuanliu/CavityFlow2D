@@ -50,8 +50,7 @@ if mode == "项目介绍":
     st.header("📖 项目介绍")
     st.divider()
     
-    # A. 渲染文字
-    # 现在使用的是 iframe 渲染，如果你的 html 里有滚动条，这里就会显示滚动条
+    # A. 渲染文字 (iframe 渲染)
     if os.path.exists("posts/about.html"):
         reader.render_content("posts", "about.html")
     else:
@@ -75,7 +74,7 @@ elif mode == "CFD计算模拟":
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
     
-    # A. 参数表单 (CSS 已去除按钮背景色)
+    # A. 参数表单
     with st.form("cfd_params_form"):
         st.subheader("1. 模拟参数配置")
         
@@ -130,17 +129,31 @@ elif mode == "知识库/文章":
     if st.session_state.reading_article:
         article = st.session_state.reading_article
         
-        col_btn, col_txt = st.columns([1, 6])
-        with col_btn:
+        # --- 顶部导航栏布局优化 ---
+        # 比例 [1, 10, 1]：确保中间列足够宽，且左右有对称的占位，实现视觉绝对居中
+        col_back, col_title, col_placeholder = st.columns([1, 10, 1])
+        
+        with col_back:
+            # 按钮填满左侧小列
             if st.button("⬅️ 返回", use_container_width=True):
                 st.session_state.reading_article = None
                 st.rerun()
-        with col_txt:
-            st.markdown(f"### {article['title']}")
+                
+        with col_title:
+            # 使用 HTML 控制样式：居中对齐，深色字体
+            # margin-top 用于微调，使其在垂直方向上与按钮对齐
+            st.markdown(
+                f"<h3 style='text-align: center; margin-top: 5px; color: #333;'>{article['title']}</h3>", 
+                unsafe_allow_html=True
+            )
+            
+        with col_placeholder:
+            # 右侧空列，用于平衡左侧按钮的宽度
+            st.write("") 
             
         st.divider()
         
-        # 文章内容渲染 (这里如果是 html 文件，也会用 iframe，解决源码外泄问题)
+        # 文章内容渲染
         reader.render_content("posts", article['file'])
 
     else:
