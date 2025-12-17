@@ -1,129 +1,170 @@
 import streamlit as st
 
 def apply_custom_style():
-    """注入自定义 CSS"""
+    """注入现代化的自定义 CSS (Modern Scientific Dashboard Theme)"""
     st.markdown("""
         <style>
-        /* 1. 全局设置 */
-        .stApp { background-color: #ffffff; }
-        footer, #MainMenu { visibility: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* 2. 侧边栏按钮微调 */
-        [data-testid="stSidebar"] [role="radiogroup"] > label {
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid transparent;
-            transition: all 0.2s;
+        /* 1. 全局字体与背景 */
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b; 
         }
-        [data-testid="stSidebar"] [role="radiogroup"] > label:hover {
-            background-color: #e9ecef; /* 浅灰悬停 */
-            color: #000;
+        .stApp {
+            background-color: #f8fafc; /* 极淡的灰蓝色背景 */
         }
-
-        /* 3. CFD 参数按钮：零背景 + 纯黑符号风格 */
         
-        /* 默认状态 */
-        [data-testid="stNumberInput"] button {
-            background-color: transparent !important; /* 透明背景 */
-            border: 1px solid #dee2e6 !important;     /* 浅灰边框 */
-            color: #000000 !important;                /* 强制符号纯黑 */
-            border-radius: 4px !important;
+        /* 2. 侧边栏优化 */
+        [data-testid="stSidebar"] {
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            color: #475569;
             transition: all 0.2s ease;
         }
-
-        /* 鼠标悬停状态 */
-        [data-testid="stNumberInput"] button:hover {
-            background-color: transparent !important; /* 保持透明 */
-            border-color: #000000 !important;         /* 边框变黑，提示可点击 */
-            color: #000000 !important;                /* 符号保持纯黑 */
-            transform: translateY(-1px);              /* 微微上浮 */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        [data-testid="stSidebar"] [role="radiogroup"] label:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        /* 选中状态模拟 */
+        [data-testid="stSidebar"] [role="radiogroup"] [data-checked="true"] {
+            background-color: #eff6ff !important;
+            color: #2563eb !important;
+            border: 1px solid #bfdbfe !important;
         }
 
-        /* 鼠标按下/点击状态 */
-        [data-testid="stNumberInput"] button:active {
-            background-color: transparent !important; /* 点击时不许变色 */
-            border-color: #000000 !important;
-            color: #000000 !important;                /* 点击时符号保持纯黑 */
-            transform: translateY(0) scale(0.96);     /* 按压效果 */
-            box-shadow: none !important;
+        /* 3. 输入组件美化 */
+        [data-testid="stNumberInput"] input {
+            color: #334155;
+            font-weight: 600;
         }
-        
-        /* 双重保险：强制内部 SVG 图标也是黑色 */
-        [data-testid="stNumberInput"] button svg {
-            fill: #000000 !important;
+        [data-testid="stSlider"] div[data-baseweb="slider"] div {
+            background-color: #3b82f6 !important; /* 科技蓝 */
         }
 
-        /* 4. 开始计算按钮 */
-        [data-testid="stForm"] button {
-            background: #228be6;
+        /* 4. 主按钮 (Start Calculation) */
+        [data-testid="stForm"] button[kind="secondaryFormSubmit"] {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white !important;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             font-weight: 600;
-        }
-        [data-testid="stForm"] button:hover {
-            background: #1c7ed6;
-        }
-
-        /* 5. 卡片样式优化 */
-        [data-testid="stVerticalBlockBorderWrapper"] {
             border-radius: 8px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            background-color: #fff;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            transition: transform 0.1s, box-shadow 0.2s;
+            width: 100%;
+        }
+        [data-testid="stForm"] button[kind="secondaryFormSubmit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+        [data-testid="stForm"] button[kind="secondaryFormSubmit"]:active {
+            transform: translateY(0);
         }
 
-        /* 6. 图片标题 */
-        .plot-caption {
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            color: #495057;
-            background-color: #f8f9fa;
-            padding: 4px 12px;
+        /* 5. 通用卡片样式 (Containers) */
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            background-color: #ffffff;
             border-radius: 12px;
-            margin-top: -5px; 
-            margin-bottom: 15px;
-            border: 1px solid #dee2e6;
-            display: inline-block;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            padding: 20px;
         }
-        .plot-container { text-align: center; }
 
-        /* 7. 版权页脚 (高级黑，无背景) */
+        /* 6. 标题增强 */
+        h1 { color: #0f172a; letter-spacing: -0.025em; font-weight: 800; }
+        h2 { color: #1e293b; letter-spacing: -0.025em; font-weight: 700; }
+        h3 { color: #334155; font-weight: 600; }
+        
+        /* 7. 图表标题 Caption */
+        .plot-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        .plot-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .plot-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 8. 隐藏默认元素 */
+        #MainMenu { visibility: hidden; }
+        footer { visibility: hidden; }
+        
+        /* 9. 版权信息 */
         .sidebar-copyright {
             position: fixed;
-            bottom: 15px;
+            bottom: 10px;
             left: 20px;
+            font-size: 11px;
+            color: #94a3b8;
             width: 260px;
-            font-size: 12px;
-            font-weight: 500;
-            color: #333333;   /* 高级黑 */
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             text-align: center;
             pointer-events: none;
-            background-color: transparent; /* 透明背景 */
-            z-index: 100;
         }
         </style>
     """, unsafe_allow_html=True)
 
+def render_hero_header():
+    """首页 Hero 区域"""
+    st.markdown("""
+        <div style="text-align: center; padding: 40px 0 20px 0;">
+            <h1 style="font-size: 3rem; margin-bottom: 10px; background: -webkit-linear-gradient(315deg, #1e293b 25%, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                CFD Studio
+            </h1>
+            <p style="font-size: 1.2rem; color: #64748b; max-width: 600px; margin: 0 auto;">
+                交互式二维流体力学求解器 · Python 原生驱动
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
 def render_card_standard(article, index):
+    """文章卡片渲染"""
+    # 使用 Streamlit 原生容器，但通过 CSS 增强了外观
     with st.container(border=True):
-        st.markdown(f":grey-background[**{article.get('tag', 'Article')}**]")
-        st.markdown(f"#### {article['title']}")
-        st.caption(f"{article['summary']}")
-        if st.button("阅读文章 ➜", key=f"read_{index}", use_container_width=True):
-            return True
+        col1, col2 = st.columns([0.8, 0.2])
+        with col1:
+            st.markdown(f"### {article['title']}")
+            st.caption(f"{article['summary']}")
+            # 标签徽章
+            st.markdown(f"""
+                <span style="background-color: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
+                    {article.get('tag', 'Article')}
+                </span>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.write("") 
+            st.write("")
+            if st.button("Read", key=f"read_{index}", use_container_width=True):
+                return True
     return False
 
-def render_plot_with_caption(fig, caption_text, color_theme="#f8f9fa"):
+def render_plot_with_caption(fig, caption_text):
+    """带样式的绘图容器"""
+    st.markdown(f"""
+        <div class="plot-card">
+    """, unsafe_allow_html=True)
     st.pyplot(fig, use_container_width=True)
     st.markdown(f"""
-        <div class="plot-container">
-            <span class="plot-caption" style="background-color: {color_theme};">
-                {caption_text}
-            </span>
+            <div class="plot-title">{caption_text}</div>
         </div>
     """, unsafe_allow_html=True)
