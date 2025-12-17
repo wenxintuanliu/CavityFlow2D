@@ -38,6 +38,15 @@ CARD_THEMES = [
 def render_card_standard(article, index):
     # 简约风格：无背景色头部，强调文字清晰度
     tag_icon = "🏷️"
+    tag_text = article.get('tag', 'Article')
+    
+    # 根据标签设置不同的背景色 (淡雅色系)
+    if tag_text == "理论":
+        tag_style = "background: #e7f5ff; color: #1971c2;" # 浅蓝
+    elif tag_text == "结果":
+        tag_style = "background: #ebfbee; color: #2b8a3e;" # 浅绿
+    else:
+        tag_style = "background: #f1f3f5; color: #495057;" # 浅灰
     
     with st.container(border=True):
         # 1. 头部：标题与标签
@@ -50,14 +59,14 @@ def render_card_standard(article, index):
                     font-weight: 700;
                 ">{article['title']}</h3>
                 <span style="
-                    background: #f1f3f5;
-                    color: #495057;
-                    padding: 4px 10px;
-                    border-radius: 6px;
+                    {tag_style}
+                    padding: 4px 12px;
+                    border-radius: 12px;
                     font-size: 0.8rem;
                     font-weight: 600;
                     white-space: nowrap;
-                ">{tag_icon} {article.get('tag', 'Article')}</span>
+                    border: 1px solid rgba(0,0,0,0.05);
+                ">{tag_icon} {tag_text}</span>
             </div>
         """, unsafe_allow_html=True)
         
