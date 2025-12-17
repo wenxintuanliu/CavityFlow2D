@@ -36,45 +36,43 @@ CARD_THEMES = [
 ]
 
 def render_card_standard(article, index):
-    # 循环使用主题色
-    theme = CARD_THEMES[index % len(CARD_THEMES)]
+    # 简约风格：无背景色头部，强调文字清晰度
     tag_icon = "🏷️"
     
-    # 使用 st.container(border=True) 确保按钮在卡片内部
-    # 我们通过 CSS (knowledge.css) 来美化这个容器
-    # 为了实现“高级感”，我们在容器内部使用 markdown 渲染一个彩色头部
-    
     with st.container(border=True):
-        # 1. 彩色头部 (模拟卡片背景的一部分)
+        # 1. 头部：标题与标签
         st.markdown(f"""
-            <div style="
-                background: {theme['bg']};
-                margin: -16px -16px 10px -16px; /* 抵消 padding */
-                padding: 15px 20px;
-                color: white;
-                border-radius: 10px 10px 0 0;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            ">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                        {theme['icon']} {article['title']}
-                    </span>
-                    <span style="
-                        background: rgba(255,255,255,0.25);
-                        padding: 2px 8px;
-                        border-radius: 12px;
-                        font-size: 0.8rem;
-                        backdrop-filter: blur(4px);
-                    ">{article.get('tag', 'Article')}</span>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <h3 style="
+                    margin: 0; 
+                    font-size: 1.2rem; 
+                    color: #1a1a1a; /* 深黑色标题 */
+                    font-weight: 700;
+                ">{article['title']}</h3>
+                <span style="
+                    background: #f1f3f5;
+                    color: #495057;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    white-space: nowrap;
+                ">{tag_icon} {article.get('tag', 'Article')}</span>
             </div>
         """, unsafe_allow_html=True)
         
-        # 2. 摘要内容 (在白色背景上，易读)
-        st.caption(f"{article['summary']}")
+        # 2. 摘要内容 (加深颜色)
+        st.markdown(f"""
+            <p style="
+                font-size: 0.95rem; 
+                color: #343a40; /* 深灰色正文 */
+                line-height: 1.6;
+                margin-bottom: 15px;
+            ">{article['summary']}</p>
+        """, unsafe_allow_html=True)
         
-        # 3. 按钮 (现在在卡片内部)
-        if st.button(f"阅读文章 ➜", key=f"read_{index}", use_container_width=True):
+        # 3. 按钮 (在卡片内部)
+        if st.button(f"阅读文章 ➜", key=f"read_{index}"):
             return True
             
     return False
