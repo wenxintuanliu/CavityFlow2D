@@ -54,15 +54,15 @@ def render_content(directory, filename):
             import re
             
             # 提取 style 内容
-            style_match = re.search(r'<style>(.*?)</style>', content, re.DOTALL)
+            style_match = re.search(r'<style>(.*?)</style>', content, re.DOTALL | re.IGNORECASE)
             style_content = style_match.group(1) if style_match else ""
             
             # 将 body 选择器替换为 .about-container，防止污染全局
             style_content = style_content.replace('body {', '.about-container {')
             style_content = style_content.replace('body{', '.about-container {')
             
-            # 提取 body 内部的内容
-            body_match = re.search(r'<body>(.*?)</body>', content, re.DOTALL)
+            # 提取 body 内部的内容 (支持带属性的 body 标签)
+            body_match = re.search(r'<body.*?>(.*?)</body>', content, re.DOTALL | re.IGNORECASE)
             body_content = body_match.group(1) if body_match else content
             
             # 组合新的 HTML

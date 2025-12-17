@@ -4,8 +4,8 @@ import os
 # 1. 页面配置
 st.set_page_config(page_title="CFD Studio", layout="wide")
 
-from core.solver import solve_cavity
-from viz import plots
+# 懒加载：将重型库的导入移到需要的地方，或者保持核心库在顶层但优化结构
+# 这里我们保留 layout 和 reader，因为它们轻量且 UI 初始化需要
 from ui import layout, reader
 
 # 2. 注入样式
@@ -23,7 +23,9 @@ if 'cfd_result' not in st.session_state:
 with st.sidebar:
     # 头部固定区域
     with st.container():
-        st.image("https://cdn-icons-png.flaticon.com/512/5758/5758248.png", width=60)
+        # 修复图片路径问题：使用绝对路径或检查存在性
+        icon_url = "https://cdn-icons-png.flaticon.com/512/5758/5758248.png"
+        st.image(icon_url, width=60)
         st.title("CFD Studio")
         st.caption("Ver 4.1 | Stable Release")
     
@@ -59,18 +61,23 @@ if mode == "项目介绍":
     st.markdown("---")
 
     # B. 渲染图片
-    img_path = os.path.join("assets", "cover.jpg")
+    # 修复：使用绝对路径确保 Streamlit 能找到文件
+    img_path = os.path.abspath(os.path.join("assets", "cover.jpg"))
     if os.path.exists(img_path):
         st.markdown("#### 📸 可视化展示")
         # 1:2:1 布局
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
-            st.image(img_path, caption="Lid-Driven Cavity Flow Result", use_container_width=True)
+            st.image(img_path, caption="Lid-Driven Cavity Flow Result")
 
 # ==============================================================================
 # 模块 2: CFD 计算模拟
 # ==============================================================================
 elif mode == "CFD计算模拟":
+    # 懒加载求解器和绘图库，加速首页加载
+    from core.solver import solve_cavity
+    from viz import plots
+
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
     

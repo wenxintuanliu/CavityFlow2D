@@ -125,47 +125,61 @@ def apply_custom_style():
         </style>
     """, unsafe_allow_html=True)
 
-# 定义一组高级渐变色主题
+# 定义一组高级渐变色主题 (背景色 + 文字色)
 CARD_THEMES = [
-    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",   # 深紫
-    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)", # 暖粉
-    "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",   # 清新绿
-    "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",   # 梦幻紫
-    "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)",   # 落日黄
+    {"bg": "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)", "icon": "📘"},   # 蓝紫
+    {"bg": "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", "icon": "📕"},   # 红粉
+    {"bg": "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", "icon": "📗"},   # 青绿
+    {"bg": "linear-gradient(135deg, #fa709a 0%, #fee140 100%)", "icon": "📙"},   # 橙黄
 ]
 
 def render_card_standard(article, index):
     # 循环使用主题色
     theme = CARD_THEMES[index % len(CARD_THEMES)]
+    tag_icon = "🏷️"
     
-    with st.container(border=True):
-        # 1. 顶部彩色装饰条 + 胶囊标签
-        st.markdown(f"""
-            <div style="height: 4px; background: {theme}; margin: -16px -16px 12px -16px; border-radius: 8px 8px 0 0;"></div>
+    # 纯 HTML 卡片渲染
+    # 使用 st.markdown 渲染整个卡片，以获得完全的样式控制
+    card_html = f"""
+    <div style="
+        background: {theme['bg']};
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        color: white;
+        transition: transform 0.3s ease;
+    " onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="
-                background: {theme}; 
-                color: white; 
-                padding: 3px 10px; 
-                border-radius: 12px; 
-                font-size: 12px; 
-                font-weight: 600;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                display: inline-block;
-                margin-bottom: 8px;
-            ">{article.get('tag', 'Article')}</span>
-        """, unsafe_allow_html=True)
-        
-        # 2. 标题与摘要
-        st.markdown(f"#### {article['title']}")
-        st.caption(f"{article['summary']}")
-        
-        # 3. 按钮
-        if st.button("阅读文章 ➜", key=f"read_{index}", use_container_width=True):
-            return True
+                background: rgba(255,255,255,0.25);
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                backdrop-filter: blur(5px);
+            ">{tag_icon} {article.get('tag', 'Article')}</span>
+        </div>
+        <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{article['title']}</h3>
+        <p style="font-size: 0.9rem; opacity: 0.95; margin-bottom: 15px; line-height: 1.5;">{article['summary']}</p>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+    
+    # 按钮必须在 markdown 之外，为了布局美观，我们用一个不可见的列来占位，或者直接放按钮
+    # 由于 HTML 块占据了空间，按钮会显示在卡片下方。
+    # 为了让按钮看起来像在卡片里，我们可以把卡片下半部分留白，或者...
+    # 实际上，混合 HTML 和 Streamlit 组件比较难对齐。
+    # 方案：卡片作为背景，按钮紧随其后。为了视觉统一，我们给按钮加个样式。
+    
+    if st.button(f"阅读 {article['title']} ➜", key=f"read_{index}"):
+        return True
+    
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True) # 间距
     return False
 
 def render_plot_with_caption(fig, caption_text, color_theme="#f8f9fa"):
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig)
     st.markdown(f"""
         <div class="plot-container">
             <span class="plot-caption" style="background-color: {color_theme};">
