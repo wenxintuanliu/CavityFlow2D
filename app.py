@@ -78,16 +78,21 @@ elif mode == "CFD计算模拟":
     with st.form("cfd_params_form"):
         st.subheader("1. 模拟参数配置")
         
-        c1, c2, c3 = st.columns(3)
-        with c1: re_num = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0)
-        with c2: grid_size = st.slider("网格密度 (Nx=Ny)", 21, 201, 41, 10)
-        with c3: time_step = st.number_input("时间步长 (dt)", 0.0001, 0.1, 0.001, format="%.4f")
-            
-        c4, c5, c6 = st.columns(3)
-        with c4: max_iter = st.number_input("最大迭代步数", 500, 20000, 2000, step=500)
-        with c5: omega = st.slider("SOR 松弛因子", 1.0, 1.95, 1.8)
-        with c6: st.write("") 
+        # 核心参数：突出显示
+        c1, c2 = st.columns(2)
+        with c1: 
+            re_num = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0, help="雷诺数越大，流体惯性力越强，非线性越显著。")
+        with c2: 
+            grid_size = st.slider("网格密度 (Nx=Ny)", 21, 201, 41, 10, help="网格越密，计算越精确，但耗时越长。")
         
+        # 高级参数：折叠隐藏，保持界面整洁
+        with st.expander("⚙️ 高级求解器设置 (Advanced Settings)", expanded=False):
+            st.caption("调整以下参数以控制收敛速度和稳定性：")
+            c3, c4, c5 = st.columns(3)
+            with c3: time_step = st.number_input("时间步长 (dt)", 0.0001, 0.1, 0.001, format="%.4f")
+            with c4: max_iter = st.number_input("最大迭代步数", 500, 20000, 2000, step=500)
+            with c5: omega = st.slider("SOR 松弛因子", 1.0, 1.95, 1.8)
+            
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)", use_container_width=True)
 

@@ -57,22 +57,33 @@ def apply_custom_style():
 
         /* 4. 开始计算按钮 */
         [data-testid="stForm"] button {
-            background: #228be6;
+            background: linear-gradient(135deg, #228be6 0%, #15aabf 100%);
             color: white !important;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(34, 139, 230, 0.2);
+            transition: all 0.3s ease;
         }
         [data-testid="stForm"] button:hover {
-            background: #1c7ed6;
+            background: linear-gradient(135deg, #1c7ed6 0%, #1098ad 100%);
+            box-shadow: 0 6px 12px rgba(34, 139, 230, 0.3);
+            transform: translateY(-2px);
         }
 
         /* 5. 卡片样式优化 */
         [data-testid="stVerticalBlockBorderWrapper"] {
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #e9ecef;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             background-color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            border-color: #ced4da;
         }
 
         /* 6. 图片标题 */
