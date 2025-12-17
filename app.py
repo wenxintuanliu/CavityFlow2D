@@ -1,14 +1,8 @@
 import streamlit as st
-import numpy as np  # <--- 修复了这里的 NameError
 import os
 
-# 1. 页面配置 (必须是第一个 Streamlit 命令)
-st.set_page_config(
-    page_title="CFD Studio", 
-    layout="wide",
-    page_icon="🌊",
-    initial_sidebar_state="expanded"
-)
+# 1. 页面配置
+st.set_page_config(page_title="CFD Studio", layout="wide")
 
 from core.solver import solve_cavity
 from viz import plots
@@ -17,172 +11,162 @@ from ui import layout, reader
 # 2. 注入样式
 layout.apply_custom_style()
 
-# 3. 状态初始化
+# 3. 状态管理
 if 'reading_article' not in st.session_state:
     st.session_state.reading_article = None
 if 'cfd_result' not in st.session_state:
     st.session_state.cfd_result = None
 
 # ==============================================================================
-# 左侧栏 (Sidebar)
+# 左侧栏 (Sidebar) - 固定头部防止跳动
 # ==============================================================================
 with st.sidebar:
-    st.markdown("### 🌊 CFD Studio")
-    st.caption("Ver 5.0 | Professional Edition")
+    # 头部固定区域
+    with st.container():
+        st.image("https://cdn-icons-png.flaticon.com/512/5758/5758248.png", width=60)
+        st.title("CFD Studio")
+        st.caption("Ver 4.1 | Stable Release")
     
     st.markdown("---")
     
-    # 极简导航
+    # 导航菜单
     mode = st.radio(
-        "MENU", 
-        ["Home", "Simulation", "Knowledge"], 
+        "导航菜单", 
+        ["项目介绍", "CFD计算模拟", "知识库/文章"], 
         label_visibility="collapsed"
     )
     
     st.markdown("---")
-    st.markdown(
-        """
-        <div style="font-size: 12px; color: #666;">
-        <b>Engine:</b> Python Native<br>
-        <b>Method:</b> Finite Difference<br>
-        <b>Scheme:</b> MAC / Projection
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
     
-    # 底部版权
-    st.markdown('<div class="sidebar-copyright">© 2025 Chunfeng Fusu</div>', unsafe_allow_html=True)
+    # 版权页脚 (无背景，高级黑)
+    st.markdown('<div class="sidebar-copyright">© 2025 chunfengfusu. Some rights reserved.</div>', unsafe_allow_html=True)
 
 # ==============================================================================
-# 模块 1: Home
+# 模块 1: 项目介绍
 # ==============================================================================
-if mode == "Home":
+if mode == "项目介绍":
     st.session_state.reading_article = None
     
-    layout.render_hero_header()
-    
-    # 更加紧凑的介绍页
-    c1, c2, c3 = st.columns([1, 2, 1])
-    with c2:
-        st.markdown("""
-        <div style="background: white; padding: 30px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <h3 style="margin-top:0;">What is Lid-Driven Cavity Flow?</h3>
-            <p style="color: #444; line-height: 1.6;">
-                The lid-driven cavity is a classic benchmark problem for viscous incompressible fluid flow. 
-                It serves as a standard test case for checking the accuracy of numerical techniques.
-            </p>
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-            <div style="display: flex; gap: 15px;">
-                <span style="background: #f1f5f9; color: #334155; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Navier-Stokes</span>
-                <span style="background: #f1f5f9; color: #334155; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Incompressible</span>
-                <span style="background: #f1f5f9; color: #334155; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Laminar</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.write("")
-        img_path = os.path.join("assets", "cover.jpg")
-        if os.path.exists(img_path):
-            st.image(img_path, use_container_width=True, caption="Visualized Output Example")
-
-# ==============================================================================
-# 模块 2: Simulation
-# ==============================================================================
-elif mode == "Simulation":
-    st.session_state.reading_article = None
-    
-    # 顶部标题栏
-    st.markdown("## 🌪️ Simulation Workspace")
-    st.markdown("Configure boundary conditions and solver parameters.")
+    st.header("📖 项目介绍")
     st.divider()
     
-    # 左右分栏：左侧窄（控制），右侧宽（结果）
-    col_control, col_display = st.columns([1, 3])
+    # A. 渲染文字 (iframe 渲染)
+    if os.path.exists("posts/about.html"):
+        reader.render_content("posts", "about.html")
+    else:
+        st.info("ℹ️ posts/about.html 未找到")
+
+    st.markdown("---")
+
+    # B. 渲染图片
+    img_path = os.path.join("assets", "cover.jpg")
+    if os.path.exists(img_path):
+        st.markdown("#### 📸 可视化展示")
+        # 1:2:1 布局
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            st.image(img_path, caption="Lid-Driven Cavity Flow Result", use_container_width=True)
+
+# ==============================================================================
+# 模块 2: CFD 计算模拟
+# ==============================================================================
+elif mode == "CFD计算模拟":
+    st.session_state.reading_article = None
+    st.header("🌪️ 方腔流数值模拟")
     
-    with col_control:
-        with st.container(border=True):
-            st.markdown("#### ⚙️ Settings")
+    # A. 参数表单
+    with st.form("cfd_params_form"):
+        st.subheader("1. 模拟参数配置")
+        
+        c1, c2, c3 = st.columns(3)
+        with c1: re_num = st.number_input("雷诺数 (Re)", 1.0, 5000.0, 100.0, 10.0)
+        with c2: grid_size = st.slider("网格密度 (Nx=Ny)", 21, 201, 41, 10)
+        with c3: time_step = st.number_input("时间步长 (dt)", 0.0001, 0.1, 0.001, format="%.4f")
             
-            with st.form("cfd_form"):
-                st.caption("PHYSICS")
-                re_num = st.number_input("Reynolds (Re)", 10.0, 5000.0, 100.0, 10.0)
-                
-                st.caption("GRID & TIME")
-                grid_size = st.slider("Resolution (N)", 20, 100, 40, 5)
-                time_step = st.select_slider("Time Step (dt)", options=[0.01, 0.005, 0.001, 0.0005, 0.0001], value=0.001)
-                
-                st.caption("SOLVER")
-                max_iter = st.number_input("Iterations", 500, 10000, 1500, step=500)
-                omega = st.slider("SOR Relaxation", 1.0, 1.9, 1.8)
-                
-                st.write("")
-                btn_run = st.form_submit_button("Start Calculation", type="primary", use_container_width=True)
+        c4, c5, c6 = st.columns(3)
+        with c4: max_iter = st.number_input("最大迭代步数", 500, 20000, 2000, step=500)
+        with c5: omega = st.slider("SOR 松弛因子", 1.0, 1.95, 1.8)
+        with c6: st.write("") 
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)", use_container_width=True)
 
-    with col_display:
-        if btn_run:
-            with st.status("Processing...", expanded=True) as status:
-                st.write("Initializing computational domain...")
-                try:
-                    u, v, p = solve_cavity(re_num, grid_size, grid_size, max_iter, time_step, 1e-5, omega)
-                    st.session_state.cfd_result = {"u": u, "v": v, "p": p, "re": re_num, "grid": grid_size}
-                    status.update(label="Computation Successful", state="complete", expanded=False)
-                except Exception as e:
-                    status.update(label="Error", state="error")
-                    st.error(f"Solver Error: {e}")
+    st.divider()
 
-        # 结果展示区
-        if st.session_state.cfd_result:
-            res = st.session_state.cfd_result
-            
-            # 关键指标卡片 (现在 np 已导入，不会报错)
-            v_max = np.max(np.sqrt(res['u']**2 + res['v']**2))
-            
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Reynolds No.", int(res['re']))
-            m2.metric("Grid Points", f"{res['grid']}^2")
-            m3.metric("Max Velocity", f"{v_max:.3f}")
-            m4.metric("Divergence", "< 1e-4")
-            
-            st.write("")
-            
-            # 图表 Tab 切换 (比平铺更高级)
-            tab1, tab2, tab3 = st.tabs(["Velocity Field", "Streamlines", "Pressure Contour"])
-            
-            with tab1:
-                fig1 = plots.plot_velocity_magnitude(res['u'], res['v'], res['grid'], res['re'])
-                layout.render_plot_card(fig1, "Velocity Magnitude Distribution")
-            
-            with tab2:
-                fig2 = plots.plot_streamlines(res['u'], res['v'], res['grid'], res['re'])
-                layout.render_plot_card(fig2, "Streamline Topology & Vortex Structure")
-                
-            with tab3:
-                fig3 = plots.plot_pressure(res['p'], res['grid'], res['re'])
-                layout.render_plot_card(fig3, "Pressure Field (Relative)")
+    # B. 计算逻辑
+    if submitted:
+        with st.spinner("正在进行 N-S 方程求解..."):
+            try:
+                u, v, p = solve_cavity(re_num, grid_size, grid_size, max_iter, time_step, 1e-5, omega)
+                st.session_state.cfd_result = {"u": u, "v": v, "p": p, "re": re_num, "grid": grid_size}
+                st.success("✅ 计算完成")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
-        else:
-            # 空状态指引
-            st.info("👈 Please adjust parameters on the left sidebar and click 'Start Calculation'.")
+    # C. 结果展示
+    if st.session_state.cfd_result:
+        res = st.session_state.cfd_result
+        st.subheader(f"2. 模拟结果可视化 (Re={res['re']})")
+        
+        plot_cols = st.columns(3)
+        with plot_cols[0]:
+            fig1 = plots.plot_velocity_magnitude(res['u'], res['v'], res['grid'], res['re'])
+            layout.render_plot_with_caption(fig1, "Velocity Magnitude", "#e7f5ff")
+        with plot_cols[1]:
+            fig2 = plots.plot_streamlines(res['u'], res['v'], res['grid'], res['re'])
+            layout.render_plot_with_caption(fig2, "Streamlines", "#fff3bf")
+        with plot_cols[2]:
+            fig3 = plots.plot_pressure(res['p'], res['grid'], res['re'])
+            layout.render_plot_with_caption(fig3, "Pressure Field", "#ffe3e3")
+    else:
+        st.info("👆 请设置参数并点击“开始计算”按钮。")
 
 # ==============================================================================
-# 模块 3: Knowledge
+# 模块 3: 知识库/文章
 # ==============================================================================
-elif mode == "Knowledge":
+elif mode == "知识库/文章":
     
     if st.session_state.reading_article:
         article = st.session_state.reading_article
-        st.button("← Back", on_click=lambda: st.session_state.update(reading_article=None))
-        st.markdown(f"## {article['title']}")
+        
+        # --- 顶部导航栏布局优化 ---
+        # 比例 [1, 10, 1]：确保中间列足够宽，且左右有对称的占位，实现视觉绝对居中
+        col_back, col_title, col_placeholder = st.columns([1, 10, 1])
+        
+        with col_back:
+            # 按钮填满左侧小列
+            if st.button("⬅️ 返回", use_container_width=True):
+                st.session_state.reading_article = None
+                st.rerun()
+                
+        with col_title:
+            # 使用 HTML 控制样式：居中对齐，深色字体
+            # margin-top 用于微调，使其在垂直方向上与按钮对齐
+            st.markdown(
+                f"<h3 style='text-align: center; margin-top: 5px; color: #333;'>{article['title']}</h3>", 
+                unsafe_allow_html=True
+            )
+            
+        with col_placeholder:
+            # 右侧空列，用于平衡左侧按钮的宽度
+            st.write("") 
+            
         st.divider()
+        
+        # 文章内容渲染
         reader.render_content("posts", article['file'])
+
     else:
-        st.markdown("## 📚 Theory & Documentation")
-        st.write("")
+        st.header("📚 知识库")
+        st.divider()
+        
         articles = reader.load_catalog("posts")
         if articles:
-            # 使用更整齐的网格
             cols = st.columns(3)
             for i, article in enumerate(articles):
                 with cols[i % 3]:
-                    layout.render_article_card(article, i)
+                    if layout.render_card_standard(article, i):
+                        st.session_state.reading_article = article
+                        st.rerun()
+        else:
+            st.warning("暂无文章配置 (posts/catalog.json)")
