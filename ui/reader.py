@@ -48,11 +48,32 @@ def render_content(directory, filename):
             # Markdown 依然用原生渲染
             st.markdown(content, unsafe_allow_html=True)
         elif ext == '.html':
-            # 【重要修改】回归 iframe 渲染方式
-            # 1. 解决源码显示问题：iframe 内部是独立浏览器环境，绝对不会显示代码。
-            # 2. 解决滚动问题：scrolling=True 允许内容滚动。
-            # 3. height=800：给一个足够的高度，如果内容更长则会出现滚动条。
-            components.html(content, height=800, scrolling=True)
+            # 【优化】使用 st.markdown 渲染 HTML，消除滚动条并实现原生融合
+            # 1. 移除 html/head/body 标签，防止样式冲突
+            # 2. 将 body 样式作用域限制在局部容器中
+            import re
+            
+            # 提取 style 内容
+            style_match = re.search(r'<style>(.*?)</style>', content, re.DOTALL)
+            style_content = style_match.group(1) if style_match else ""
+            
+            # 将 body 选择器替换为 .about-container，防止污染全局
+            style_content = style_content.replace('body {', '.about-container {')
+            style_content = style_content.replace('body{', '.about-container {')
+            
+            # 提取 body 内部的内容
+            body_match = re.search(r'<body>(.*?)</body>', content, re.DOTALL)
+            body_content = body_match.group(1) if body_match else content
+            
+            # 组合新的 HTML
+            final_html = f"""
+            <style>{style_content}</style>
+            <div class="about-container">
+                {body_content}
+            </div>
+            """
+            
+            st.markdown(final_html, unsafe_allow_html=True)
         else:
             st.text(content)
     except Exception as e:

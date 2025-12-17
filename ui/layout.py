@@ -4,6 +4,11 @@ def apply_custom_style():
     """注入自定义 CSS"""
     st.markdown("""
         <style>
+        /* 0. 字体优化 */
+        html, body, [class*="css"] {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+        }
+
         /* 1. 全局设置 */
         .stApp { background-color: #ffffff; }
         footer, #MainMenu { visibility: hidden; }
@@ -120,11 +125,41 @@ def apply_custom_style():
         </style>
     """, unsafe_allow_html=True)
 
+# 定义一组高级渐变色主题
+CARD_THEMES = [
+    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",   # 深紫
+    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)", # 暖粉
+    "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",   # 清新绿
+    "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",   # 梦幻紫
+    "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)",   # 落日黄
+]
+
 def render_card_standard(article, index):
+    # 循环使用主题色
+    theme = CARD_THEMES[index % len(CARD_THEMES)]
+    
     with st.container(border=True):
-        st.markdown(f":grey-background[**{article.get('tag', 'Article')}**]")
+        # 1. 顶部彩色装饰条 + 胶囊标签
+        st.markdown(f"""
+            <div style="height: 4px; background: {theme}; margin: -16px -16px 12px -16px; border-radius: 8px 8px 0 0;"></div>
+            <span style="
+                background: {theme}; 
+                color: white; 
+                padding: 3px 10px; 
+                border-radius: 12px; 
+                font-size: 12px; 
+                font-weight: 600;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                display: inline-block;
+                margin-bottom: 8px;
+            ">{article.get('tag', 'Article')}</span>
+        """, unsafe_allow_html=True)
+        
+        # 2. 标题与摘要
         st.markdown(f"#### {article['title']}")
         st.caption(f"{article['summary']}")
+        
+        # 3. 按钮
         if st.button("阅读文章 ➜", key=f"read_{index}", use_container_width=True):
             return True
     return False
