@@ -4,17 +4,17 @@
 /* 我们将使用 st.container(border=True) 并对其进行样式增强 */
 [data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 12px;
-    border: 1px solid #e9ecef; /* 浅边框 */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid #ced4da; /* 加深边框颜色 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* 增强阴影 */
     background-color: #ffffff; /* 卡片保持白色，与灰色背景形成对比 */
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    padding: 10px; /* 增加内边距 */
+    padding: 15px; /* 增加内边距 */
 }
 
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-    border-color: #ced4da;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12); /* 增强悬停阴影 */
+    border-color: #adb5bd; /* 悬停时边框更深 */
 }
 
 /* 2. 卡片内的按钮样式 */

@@ -31,23 +31,6 @@ footer, #MainMenu { visibility: hidden; }
     color: #000;
 }
 
-/* 6. 语言切换按钮样式 */
-div[data-testid="stButton"] > button[kind="secondary"] {
-    border: 1px solid #e9ecef;
-    background-color: transparent;
-    color: #495057;
-    border-radius: 20px; /* 圆角胶囊样式 */
-    padding: 0.4rem 1rem;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-
-div[data-testid="stButton"] > button[kind="secondary"]:hover {
-    border-color: #228be6;
-    color: #228be6;
-    background-color: #e7f5ff;
-}
-
 /* 5. 版权页脚 */
 .sidebar-copyright {
     position: fixed;
