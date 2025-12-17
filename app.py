@@ -6,7 +6,7 @@ st.set_page_config(page_title="CFD Studio", layout="wide")
 
 # 懒加载：将重型库的导入移到需要的地方，或者保持核心库在顶层但优化结构
 # 这里我们保留 layout 和 reader，因为它们轻量且 UI 初始化需要
-from ui import layout, reader
+from ui import style_manager as layout, reader
 
 # 2. 注入样式
 layout.apply_custom_style()

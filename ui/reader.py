@@ -48,32 +48,9 @@ def render_content(directory, filename):
             # Markdown 依然用原生渲染
             st.markdown(content, unsafe_allow_html=True)
         elif ext == '.html':
-            # 【优化】使用 st.markdown 渲染 HTML，消除滚动条并实现原生融合
-            # 1. 移除 html/head/body 标签，防止样式冲突
-            # 2. 将 body 样式作用域限制在局部容器中
-            import re
-            
-            # 提取 style 内容
-            style_match = re.search(r'<style>(.*?)</style>', content, re.DOTALL | re.IGNORECASE)
-            style_content = style_match.group(1) if style_match else ""
-            
-            # 将 body 选择器替换为 .about-container，防止污染全局
-            style_content = style_content.replace('body {', '.about-container {')
-            style_content = style_content.replace('body{', '.about-container {')
-            
-            # 提取 body 内部的内容 (支持带属性的 body 标签)
-            body_match = re.search(r'<body.*?>(.*?)</body>', content, re.DOTALL | re.IGNORECASE)
-            body_content = body_match.group(1) if body_match else content
-            
-            # 组合新的 HTML
-            final_html = f"""
-            <style>{style_content}</style>
-            <div class="about-container">
-                {body_content}
-            </div>
-            """
-            
-            st.markdown(final_html, unsafe_allow_html=True)
+            # 【恢复】使用 iframe 渲染 HTML，支持滚动且全幅显示
+            # height=800 确保有足够空间，scrolling=True 允许长内容滚动
+            components.html(content, height=800, scrolling=True)
         else:
             st.text(content)
     except Exception as e:

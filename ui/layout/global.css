@@ -1,0 +1,48 @@
+/* 全局样式设置 */
+
+/* 1. 字体优化 */
+html, body, [class*="css"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+}
+
+/* 2. 全局背景色 - 高级灰 */
+.stApp {
+    background-color: #f4f5f7; /* 浅灰蓝，比纯白更有质感 */
+}
+
+/* 3. 隐藏多余元素 */
+footer, #MainMenu { visibility: hidden; }
+
+/* 4. 侧边栏样式 */
+[data-testid="stSidebar"] {
+    background-color: #ffffff;
+    border-right: 1px solid #e9ecef;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] > label {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+[data-testid="stSidebar"] [role="radiogroup"] > label:hover {
+    background-color: #e9ecef;
+    color: #000;
+}
+
+/* 5. 版权页脚 */
+.sidebar-copyright {
+    position: fixed;
+    bottom: 15px;
+    left: 20px;
+    width: 260px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #333333;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    text-align: center;
+    pointer-events: none;
+    background-color: transparent;
+    z-index: 100;
+}

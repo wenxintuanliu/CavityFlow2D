@@ -1,0 +1,64 @@
+/* 模拟页面 (Simulation) 样式 */
+
+/* 1. 数字输入框样式 */
+[data-testid="stNumberInput"] button {
+    background-color: transparent !important;
+    border: 1px solid #dee2e6 !important;
+    color: #000000 !important;
+    border-radius: 4px !important;
+    transition: all 0.2s ease;
+}
+
+[data-testid="stNumberInput"] button:hover {
+    background-color: transparent !important;
+    border-color: #000000 !important;
+    color: #000000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+[data-testid="stNumberInput"] button:active {
+    background-color: transparent !important;
+    border-color: #000000 !important;
+    color: #000000 !important;
+    transform: translateY(0) scale(0.96);
+    box-shadow: none !important;
+}
+
+[data-testid="stNumberInput"] button svg {
+    fill: #000000 !important;
+}
+
+/* 2. 开始计算按钮 */
+[data-testid="stForm"] button {
+    background: linear-gradient(135deg, #228be6 0%, #15aabf 100%);
+    color: white !important;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 6px rgba(34, 139, 230, 0.2);
+    transition: all 0.3s ease;
+}
+[data-testid="stForm"] button:hover {
+    background: linear-gradient(135deg, #1c7ed6 0%, #1098ad 100%);
+    box-shadow: 0 6px 12px rgba(34, 139, 230, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 3. 图片标题 */
+.plot-caption {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    background-color: #ffffff; /* 改为白色以适配灰色背景 */
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-top: -5px; 
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.plot-container { text-align: center; }
