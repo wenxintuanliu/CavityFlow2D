@@ -90,79 +90,99 @@ elif selected_key == "cfd":
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
     
-    # A. 参数表单
-    with st.form("cfd_params_form"):
-        st.subheader("1. 模拟参数配置")
-        
-        # 核心参数：突出显示
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            re_num = st.number_input(
-                "雷诺数 (Re)",
-                1.0,
-                10000.0,
-                100.0,
-                10.0,
-                help="雷诺数越大，流体惯性力越强，非线性越显著。",
-            )
-        with c2:
-            nx = st.number_input("网格数 nx", min_value=20, max_value=400, value=60, step=5)
-        with c3:
-            ny = st.number_input("网格数 ny", min_value=20, max_value=400, value=60, step=5)
+    # A. 参数区（不放在 form 内：确保修改参数后提示/控件能实时刷新）
+    st.subheader("1. 模拟参数配置")
 
-        # 时间步长推荐（与 solver 内打印一致）
-        Lx, Ly = 1.0, 1.0
-        dx = Lx / nx
-        dy = Ly / ny
-        u_max_est = 1.0
-        dt_cfl = min(dx, dy) / u_max_est
-        dt_diff = 0.25 * re_num * min(dx, dy) ** 2
-        dt_recommended = min(dt_cfl, dt_diff)
-        st.caption(
-            f"时间步长建议：dt ≤ {dt_recommended:.6f}（CFL: {dt_cfl:.6f}，Diff: {dt_diff:.6f}）"
+    # 核心参数
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        re_num = st.number_input(
+            "雷诺数 (Re)",
+            1.0,
+            10000.0,
+            100.0,
+            10.0,
+            help="雷诺数越大，流体惯性力越强，非线性越显著。",
+            key="cfd_re",
         )
-        
-        # 高级参数：折叠隐藏，保持界面整洁
-        with st.expander("⚙️ 高级求解器设置 (Advanced Settings)", expanded=False):
-            st.caption("调整以下参数以控制收敛速度和稳定性：")
+    with c2:
+        nx = st.number_input("网格数 nx", min_value=20, max_value=400, value=60, step=5, key="cfd_nx")
+    with c3:
+        ny = st.number_input("网格数 ny", min_value=20, max_value=400, value=60, step=5, key="cfd_ny")
 
-            c4, c5, c6 = st.columns(3)
-            with c4:
-                time_step = st.number_input(
-                    "时间步长 (dt)",
-                    min_value=1e-12,
-                    max_value=0.1,
-                    value=float(f"{dt_recommended:.6f}"),
-                    format="%.2e",
-                )
-            with c5:
-                max_iter = st.number_input("最大迭代步数", 100, 200000, 20000, step=1000)
-            with c6:
-                pressure_solver = st.selectbox(
-                    "压力方程求解器",
-                    options=["jacobi", "gauss_seidel", "sor"],
-                    index=2,
-                )
+    # 时间步长推荐（与 solver 内打印一致）
+    Lx, Ly = 1.0, 1.0
+    dx = Lx / int(nx)
+    dy = Ly / int(ny)
+    u_max_est = 1.0
+    dt_cfl = min(dx, dy) / u_max_est
+    dt_diff = 0.25 * float(re_num) * (min(dx, dy) ** 2)
+    dt_recommended = float(min(dt_cfl, dt_diff))
+    st.caption(
+        f"时间步长建议：dt ≤ {dt_recommended:.6f}（CFL: {dt_cfl:.6f}，Diff: {dt_diff:.6f}）"
+    )
 
-            c7, c8, c9 = st.columns(3)
-            with c7:
-                Vtol = st.number_input("速度场收敛容差 Vtol", value=1e-6, format="%.1e")
-            with c8:
-                Ptol = st.number_input("压力方程收敛容差 Ptol", value=1e-6, format="%.1e")
-            with c9:
-                if pressure_solver == "sor":
-                    omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.8)
-                elif pressure_solver == "gauss_seidel":
-                    omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.0, disabled=True)
-                else:  # jacobi
-                    omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.0, disabled=True)
+    # 高级参数：折叠隐藏，保持界面整洁
+    with st.expander("⚙️ 高级求解器设置 (Advanced Settings)", expanded=False):
+        st.caption("调整以下参数以控制收敛速度和稳定性：")
 
-            save_snapshots = st.checkbox("保存间隔快照（用于查看收敛过程）", value=False)
-            save_interval = None
-            if save_snapshots:
-                save_interval = st.number_input("保存间隔 N（每 N 步保存一次）", 10, 10000, 200, step=10)
-            
-        st.markdown("<br>", unsafe_allow_html=True)
+        c4, c5, c6 = st.columns(3)
+        with c4:
+            # 1) 默认值不要用格式化截断（避免推荐值很小时变成 0 导致减号按钮直接不可用）
+            # 2) 设置一个合理 step，让 +/- 按钮可用且有意义
+            dt_default = float(np.clip(dt_recommended, 1e-12, 0.1))
+            time_step = st.number_input(
+                "时间步长 (dt)",
+                min_value=1e-12,
+                max_value=0.1,
+                value=dt_default,
+                step=1e-6,
+                format="%.2e",
+                key="cfd_dt",
+            )
+        with c5:
+            max_iter = st.number_input("最大迭代步数", 100, 200000, 20000, step=1000, key="cfd_max_iter")
+        with c6:
+            pressure_solver = st.selectbox(
+                "压力方程求解器",
+                options=["jacobi", "gauss_seidel", "sor"],
+                index=2,
+                key="cfd_pressure_solver",
+            )
+
+        c7, c8, c9 = st.columns(3)
+        with c7:
+            Vtol = st.number_input("速度场收敛容差 Vtol", value=1e-6, format="%.1e", key="cfd_vtol")
+        with c8:
+            Ptol = st.number_input("压力方程收敛容差 Ptol", value=1e-6, format="%.1e", key="cfd_ptol")
+        with c9:
+            # omega 联动逻辑：
+            # - Jacobi：不显示 slider，改为提示“雅可比迭代不涉及 omega”
+            # - GS：显示为 1 且灰色不可改
+            # - SOR：可调
+            if pressure_solver == "jacobi":
+                omega = 1.0
+                st.info("雅可比迭代不涉及 omega。")
+            elif pressure_solver == "gauss_seidel":
+                omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.0, disabled=True, key="cfd_omega_gs")
+            else:  # sor
+                omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.8, key="cfd_omega_sor")
+
+        save_snapshots = st.checkbox("保存间隔快照（用于查看收敛过程）", value=False, key="cfd_save_snapshots")
+        save_interval = None
+        if save_snapshots:
+            save_interval = st.number_input(
+                "保存间隔 N（每 N 步保存一次）",
+                10,
+                10000,
+                200,
+                step=10,
+                key="cfd_save_interval",
+            )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    # 单独一个 form 只放按钮：保留你现有的按钮样式，同时不影响参数区的实时刷新
+    with st.form("cfd_run_form"):
         submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)", use_container_width=True)
 
     st.divider()
@@ -231,18 +251,18 @@ elif selected_key == "cfd":
         r1c1, r1c2 = st.columns(2)
         with r1c1:
             fig_u = plot_u_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_u, "u-velocity", "#f8f9fa")
+            layout.render_plot_with_caption(fig_u, "u-velocity", "#f1f3f5")
         with r1c2:
             fig_v = plot_v_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_v, "v-velocity", "#f8f9fa")
+            layout.render_plot_with_caption(fig_v, "v-velocity", "#f1f3f5")
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
             fig_p = plot_pressure(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_p, "Pressure Field", "#f8f9fa")
+            layout.render_plot_with_caption(fig_p, "Pressure Field", "#f1f3f5")
         with r2c2:
             fig_s = plot_streamlines(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_s, "Streamlines", "#f8f9fa")
+            layout.render_plot_with_caption(fig_s, "Streamlines", "#f1f3f5")
 
         # 2) 中心线对比图放在四图下方，并居中显示（不全幅）
         fig_center = zxpm(
@@ -265,7 +285,7 @@ elif selected_key == "cfd":
 
         c_left, c_mid, c_right = st.columns([1, 2, 1])
         with c_mid:
-            layout.render_plot_with_caption(fig_center, "中心线剖面对比（Ghia 1982）", "#f8f9fa")
+            layout.render_plot_with_caption(fig_center, "中心线剖面对比（Ghia 1982）", "#f1f3f5")
     else:
         st.info("👆 请设置参数并点击“开始计算”按钮。")
 
