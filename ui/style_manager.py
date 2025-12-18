@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import io
 
 def load_css(filename):
     """读取 CSS 文件内容"""
@@ -87,7 +88,14 @@ def render_card_standard(article, index):
     return False
 
 def render_plot_with_caption(fig, caption_text, color_theme="#f8f9fa"):
-    st.pyplot(fig)
+    # 说明：st.pyplot 往往会用 tight bbox 导出并按容器宽度缩放。
+    # 当不同图的刻度/标题/色标文字宽度略有差异时，会导致“同 figsize 的图”在页面上缩放比例不同，
+    # 从而出现 Streamlines 看起来略大/略小的现象。
+    # 这里改为固定画布尺寸导出 PNG（不做 tight 裁剪），让四张图的像素尺寸一致，从源头消除该问题。
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=160, bbox_inches=None)
+    buf.seek(0)
+    st.image(buf.getvalue(), use_container_width=True)
     st.markdown(f"""
         <div class="plot-container">
             <span class="plot-caption" style="background-color: {color_theme};">
