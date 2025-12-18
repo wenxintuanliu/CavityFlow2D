@@ -86,6 +86,7 @@ elif selected_key == "cfd":
     from viz.plot_flow import plot_pressure, plot_streamlines, plot_u_velocity, plot_v_velocity
     from viz.center_line import zxpm
     import numpy as np
+    import matplotlib.pyplot as plt
 
     st.session_state.reading_article = None
     st.header("🌪️ 方腔流数值模拟")
@@ -136,7 +137,7 @@ elif selected_key == "cfd":
                 min_value=1e-12,
                 max_value=0.1,
                 value=dt_default,
-                step=1e-6,
+                step=1e-3,
                 format="%.2e",
                 key="cfd_dt",
             )
@@ -152,9 +153,21 @@ elif selected_key == "cfd":
 
         c7, c8, c9 = st.columns(3)
         with c7:
-            Vtol = st.number_input("速度场收敛容差 Vtol", value=1e-6, format="%.1e", key="cfd_vtol")
+            Vtol = st.number_input(
+                "速度场收敛容差 Vtol",
+                value=1e-6,
+                step=1e-6,
+                format="%.1e",
+                key="cfd_vtol",
+            )
         with c8:
-            Ptol = st.number_input("压力方程收敛容差 Ptol", value=1e-6, format="%.1e", key="cfd_ptol")
+            Ptol = st.number_input(
+                "压力方程收敛容差 Ptol",
+                value=1e-6,
+                step=1e-6,
+                format="%.1e",
+                key="cfd_ptol",
+            )
         with c9:
             # omega 联动逻辑：
             # - Jacobi：不显示 slider，改为提示“雅可比迭代不涉及 omega”
@@ -216,6 +229,8 @@ elif selected_key == "cfd":
                     "omega": float(omega),
                     "save_interval": save_interval,
                 }
+                # 新结果产生后，清空旧的图像缓存，避免显示错帧/错参数
+                st.session_state.pop("cfd_plot_cache", None)
                 st.success("✅ 计算完成")
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -247,45 +262,83 @@ elif selected_key == "cfd":
         x_center = (x_face[:-1] + x_face[1:]) / 2.0
         y_center = (y_face[:-1] + y_face[1:]) / 2.0
 
+        # 图像缓存：避免你在上方改参数时，下方四张图每次都重新生成（造成“重新加载”的感觉）
+        plot_cache = st.session_state.setdefault("cfd_plot_cache", {})
+        cache_base = (
+            float(res["re"]),
+            int(res["nx"]),
+            int(res["ny"]),
+            float(res["dt"]),
+            str(res["pressure_solver"]),
+            float(res["omega"]),
+            int(frame_idx),
+        )
+
+        def _get_plot_bytes(name: str, fig_factory):
+            key = cache_base + (name,)
+            if key not in plot_cache:
+                fig = fig_factory()
+                try:
+                    plot_cache[key] = layout.fig_to_png_bytes(fig)
+                finally:
+                    try:
+                        plt.close(fig)
+                    except Exception:
+                        pass
+            return plot_cache[key]
+
         # 1) 四张结果图拆开显示（每张图下方标注图名）
         r1c1, r1c2 = st.columns(2)
         with r1c1:
-            fig_u = plot_u_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_u, "u-velocity", "#f1f3f5")
+            img_u = _get_plot_bytes(
+                "u",
+                lambda: plot_u_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
+            )
+            layout.render_plot_with_caption(image_bytes=img_u, caption_text="u-velocity", color_theme="#e7f5ff")
         with r1c2:
-            fig_v = plot_v_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_v, "v-velocity", "#f1f3f5")
+            img_v = _get_plot_bytes(
+                "v",
+                lambda: plot_v_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
+            )
+            layout.render_plot_with_caption(image_bytes=img_v, caption_text="v-velocity", color_theme="#e7f5ff")
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
-            fig_p = plot_pressure(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_p, "Pressure Field", "#f1f3f5")
+            img_p = _get_plot_bytes(
+                "p",
+                lambda: plot_pressure(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
+            )
+            layout.render_plot_with_caption(image_bytes=img_p, caption_text="Pressure Field", color_theme="#e7f5ff")
         with r2c2:
-            fig_s = plot_streamlines(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-            layout.render_plot_with_caption(fig_s, "Streamlines", "#f1f3f5")
+            img_s = _get_plot_bytes(
+                "s",
+                lambda: plot_streamlines(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
+            )
+            layout.render_plot_with_caption(image_bytes=img_s, caption_text="Streamlines", color_theme="#e7f5ff")
 
         # 2) 中心线对比图放在四图下方，并居中显示（不全幅）
-        fig_center = zxpm(
-            u,
-            v,
-            x_face,
-            y_face,
-            x_center,
-            y_center,
-            int(res["re"]),
-            filename=None,
-            show=False,
+        img_center = _get_plot_bytes(
+            "center",
+            lambda: zxpm(
+                u,
+                v,
+                x_face,
+                y_face,
+                x_center,
+                y_center,
+                int(res["re"]),
+                filename=None,
+                show=False,
+            ),
         )
-        # 控制 web 显示尺寸：缩小 figure
-        try:
-            fig_center.set_size_inches(6.5, 6.5)
-            fig_center.tight_layout()
-        except Exception:
-            pass
 
         c_left, c_mid, c_right = st.columns([1, 2, 1])
         with c_mid:
-            layout.render_plot_with_caption(fig_center, "中心线剖面对比（Ghia 1982）", "#f1f3f5")
+            layout.render_plot_with_caption(
+                image_bytes=img_center,
+                caption_text="中心线剖面对比（Ghia 1982）",
+                color_theme="#e7f5ff",
+            )
     else:
         st.info("👆 请设置参数并点击“开始计算”按钮。")
 

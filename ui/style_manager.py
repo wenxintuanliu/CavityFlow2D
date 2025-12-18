@@ -87,15 +87,22 @@ def render_card_standard(article, index):
             
     return False
 
-def render_plot_with_caption(fig, caption_text, color_theme="#f8f9fa"):
-    # 说明：st.pyplot 往往会用 tight bbox 导出并按容器宽度缩放。
-    # 当不同图的刻度/标题/色标文字宽度略有差异时，会导致“同 figsize 的图”在页面上缩放比例不同，
-    # 从而出现 Streamlines 看起来略大/略小的现象。
-    # 这里改为固定画布尺寸导出 PNG（不做 tight 裁剪），让四张图的像素尺寸一致，从源头消除该问题。
+def fig_to_png_bytes(fig, dpi: int = 160) -> bytes:
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=160, bbox_inches=None)
+    fig.savefig(buf, format="png", dpi=dpi, bbox_inches=None)
     buf.seek(0)
-    st.image(buf.getvalue(), use_container_width=True)
+    return buf.getvalue()
+
+
+def render_plot_with_caption(fig=None, caption_text="", color_theme="#f8f9fa", image_bytes: bytes | None = None):
+    # 说明：st.pyplot 往往会用 tight bbox 导出并按容器宽度缩放。
+    # 当不同图的刻度/标题/色标文字宽度略有差异时，会导致“同 figsize 的图”在页面上缩放比例不同。
+    # 使用固定画布尺寸导出的 PNG（不做 tight 裁剪）可以让四张图缩放一致。
+    if image_bytes is None:
+        if fig is None:
+            raise ValueError("render_plot_with_caption 需要 fig 或 image_bytes")
+        image_bytes = fig_to_png_bytes(fig)
+    st.image(image_bytes, use_container_width=True)
     st.markdown(f"""
         <div class="plot-container">
             <span class="plot-caption" style="background-color: {color_theme};">
