@@ -65,6 +65,8 @@ def lid_driven_cavity_mac(
     v_list = []
     p_list = []
 
+    last_saved_step = None
+
     # save_interval 参数校验
     if save_interval is not None:
         try:
@@ -334,12 +336,15 @@ def lid_driven_cavity_mac(
                 converged_step = n + 1
                 print(f"收敛于第 {converged_step} 步 (Error: {max(err_u, err_v):.2e})")
 
-        # 按需保存快照：save_interval=None 时不保存历史
+        # 按需保存快照：
+        # - 不保存第 0 步（避免用户理解为“每 N 步保存一次”却多出一帧）
+        # - 结束时会另保存最后一帧，因此这里也记录保存步数用于去重
         if save_interval is not None:
-            if (n % save_interval) == 0:
+            if n > 0 and (n % save_interval) == 0:
                 u_list.append(u.copy())
                 v_list.append(v.copy())
                 p_list.append(p.copy())
+                last_saved_step = n + 1
 
         if converged_step is not None:
             if progress_bar is not None:
@@ -349,10 +354,17 @@ def lid_driven_cavity_mac(
     else:
         print(f"达到最大迭代次数 {max_iter}，未完全收敛。")
 
-    # 结束时保证保存最后一帧（无论是否收敛）
-    u_list.append(u.copy())
-    v_list.append(v.copy())
-    p_list.append(p.copy())
+    # 结束时保证保存最后一帧（无论是否收敛），并避免与间隔快照重复
+    final_step = None
+    try:
+        final_step = (converged_step if converged_step is not None else (n + 1))
+    except Exception:
+        final_step = None
+
+    if save_interval is None or (last_saved_step != final_step):
+        u_list.append(u.copy())
+        v_list.append(v.copy())
+        p_list.append(p.copy())
 
     if progress_bar is not None:
         if canceled_step is not None:

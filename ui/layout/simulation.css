@@ -94,3 +94,9 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .plot-container { text-align: center; }
+
+/* 4. 快照选择（输入框更紧凑、居中） */
+[data-testid="stTextInput"] input {
+    text-align: center;
+    padding: 0.25rem 0.4rem;
+}

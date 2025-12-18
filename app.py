@@ -262,6 +262,7 @@ elif selected_key == "cfd":
 
                 # 当结果帧数变化时，重置快照选择默认到最后一帧
                 st.session_state.cfd_frame_no = len(u_list)
+                st.session_state.cfd_frame_no_str = str(len(u_list))
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -285,24 +286,34 @@ elif selected_key == "cfd":
 
         frame_count = len(u_list)
         if frame_count > 1:
-            # 输入式快照选择："请选择想要显示的快照【n】/总快照数"
-            c_a, c_b, c_c = st.columns([2.2, 1.0, 1.2])
-            with c_a:
+            # 输入式快照选择（无 +/-）："请选择想要显示的快照【n】/ 总快照数"
+            default_no = int(st.session_state.get("cfd_frame_no", frame_count))
+            default_no = max(1, min(default_no, frame_count))
+            st.session_state.setdefault("cfd_frame_no_str", str(default_no))
+
+            a, b, c, d = st.columns([2.6, 0.15, 0.6, 0.9])
+            with a:
                 st.markdown("请选择想要显示的快照")
-            with c_b:
-                default_no = int(st.session_state.get("cfd_frame_no", frame_count))
-                default_no = max(1, min(default_no, frame_count))
-                frame_no = st.number_input(
+            with b:
+                st.markdown("【")
+            with c:
+                frame_no_str = st.text_input(
                     "快照序号",
-                    min_value=1,
-                    max_value=frame_count,
-                    value=default_no,
-                    step=1,
+                    value=st.session_state.get("cfd_frame_no_str", str(default_no)),
                     label_visibility="collapsed",
-                    key="cfd_frame_no",
+                    key="cfd_frame_no_str",
                 )
-            with c_c:
-                st.markdown(f"/ {frame_count}")
+            with d:
+                st.markdown(f"】/ {frame_count}")
+
+            # 解析输入（不合法则保持上一次有效值）
+            frame_no = default_no
+            try:
+                frame_no = int(str(frame_no_str).strip())
+                frame_no = max(1, min(frame_no, frame_count))
+                st.session_state.cfd_frame_no = frame_no
+            except Exception:
+                frame_no = int(st.session_state.get("cfd_frame_no", default_no))
 
             frame_idx = int(frame_no) - 1
         else:
