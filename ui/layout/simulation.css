@@ -96,7 +96,21 @@
 .plot-container { text-align: center; }
 
 /* 4. 快照选择（输入框更紧凑、居中） */
-[data-testid="stTextInput"] input {
+.snapshot-text {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin: 0;
+    padding-top: 0.15rem;
+    font-size: 0.95rem;
+    color: #343a40;
+}
+
+.snapshot-total {
+    justify-content: flex-start;
+}
+
+/* 仅微调 number_input：让中间的值输入更紧凑一点 */
+[data-testid="stNumberInput"] input {
     text-align: center;
-    padding: 0.25rem 0.4rem;
 }
