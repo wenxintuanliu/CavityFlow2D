@@ -304,7 +304,10 @@ elif selected_key == "cfd":
                         key="cfd_frame_no",
                     )
                 with c:
-                    st.markdown(f'<div class="snapshot-text snapshot-total">/ {frame_count}</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="snapshot-total">共 {frame_count} 帧</div>',
+                        unsafe_allow_html=True,
+                    )
 
             frame_idx = int(frame_no) - 1
         else:
