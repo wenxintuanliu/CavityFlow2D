@@ -60,10 +60,10 @@ if selected_key == "project":
     st.divider()
     
     # A. 渲染文字 (iframe 渲染)
-    if os.path.exists("posts/about.html"):
-        reader.render_content("posts", "about.html")
+    if os.path.exists("posts/about.md"):
+        reader.render_content("posts", "about.md")
     else:
-        st.info("ℹ️ posts/about.html 未找到")
+        st.info("ℹ️ posts/about.md 未找到")
 
     st.markdown("---")
 
@@ -142,7 +142,7 @@ elif selected_key == "cfd":
                 key="cfd_dt",
             )
         with c5:
-            max_iter = st.number_input("最大时间步数", 100, 200000, 20000, step=1000, key="cfd_max_iter")
+            max_iter = st.number_input("最大时间步数", 100, 60000000, 20000, step=1000, key="cfd_max_iter")
         with c6:
             pressure_solver = st.selectbox(
                 "压力方程求解器",
