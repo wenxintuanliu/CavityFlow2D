@@ -49,9 +49,11 @@ def _setup_axis(ax, Lx, Ly, title):
         label.set_fontname('Times New Roman')
 
 
-def _setup_colorbar(cbar):
+def _setup_colorbar(cbar, fmt: str = '%7.2f'):
     cbar.locator = LinearLocator(numticks=7)
-    cbar.formatter = FormatStrFormatter('%.1f')
+    # 使用“固定宽度”的数字格式，减少不同变量取值范围导致的刻度文字宽度差异。
+    # Streamlit 渲染 figure 时常会使用 tight bbox；刻度文字宽度不同会让主图区域看起来不等大。
+    cbar.formatter = FormatStrFormatter(fmt)
     cbar.update_ticks()
     cbar.ax.tick_params(labelsize=12)
     for label in cbar.ax.get_yticklabels():
