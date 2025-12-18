@@ -124,7 +124,7 @@ elif selected_key == "cfd":
     )
 
     # 高级参数：折叠隐藏，保持界面整洁
-    with st.expander("⚙️ 高级求解器设置 (Advanced Settings)", expanded=False):
+    with st.expander("⚙️ 求解器参数设置 (Advanced Settings)", expanded=False):
         st.caption("调整以下参数以控制收敛速度和稳定性：")
 
         c4, c5, c6 = st.columns(3)
@@ -181,7 +181,7 @@ elif selected_key == "cfd":
             else:  # sor
                 omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.8, key="cfd_omega_sor")
 
-        save_snapshots = st.checkbox("保存间隔快照（用于查看收敛过程）", value=False, key="cfd_save_snapshots")
+        save_snapshots = st.checkbox("保存间隔快照内存（便于查看指定时间步作图）", value=False, key="cfd_save_snapshots")
         save_interval = None
         if save_snapshots:
             save_interval = st.number_input(
