@@ -6,8 +6,6 @@ def lid_driven_cavity_mac(
         Re=100, nx=60, ny=60, max_iter=20000, dt=0.001, Vtol=1e-6, Ptol=1e-6,
         pressure_solver="sor", omega=1.8,
         save_interval=None,
-    progress_callback=None,
-    progress_every=50,
 ):
     """
     MAC网格 + 有限差分法求解顶盖驱动方腔流。
@@ -21,13 +19,28 @@ def lid_driven_cavity_mac(
         save_interval:
             - None: 不保存全历史，只在结束时保存最后一帧（最省内存，推荐）。
             - 正整数 N: 每 N 个时间步保存一次快照；并且结束时也会保存最后一帧。
-        progress_callback:
-            - None: 不回调。
-            - Callable[[int, int, str], None]: 进度回调函数，参数为 (current_step, total_steps, message)。
-              该回调应尽量轻量；用于 Streamlit 等界面进度展示。
-        progress_every:
-            - 回调频率，每 progress_every 步回调一次（默认 50）。
+        进度显示:
+            - 若在 Streamlit 环境运行，函数内部会自动显示进度条，并在结束后保留。
+            - 若在命令行/脚本运行，默认使用 tqdm 显示进度。
     """
+
+    # 尝试检测 Streamlit 运行环境（用于显示进度条）
+    progress_bar = None
+    progress_text = None
+    try:
+        import streamlit as st
+        try:
+            from streamlit.runtime.scriptrunner import get_script_run_ctx
+            in_streamlit = get_script_run_ctx() is not None
+        except Exception:
+            in_streamlit = False
+
+        if in_streamlit:
+            progress_bar = st.progress(0, text="准备开始计算...")
+            progress_text = st.empty()
+    except Exception:
+        progress_bar = None
+        progress_text = None
 
     # -------------------------------------------------------------------------
     # 1. 基础设置与网格初始化
@@ -111,30 +124,23 @@ def lid_driven_cavity_mac(
 
     print(f"开始计算: Re={Re}, Grid={nx}x{ny}, Solver={pressure_solver}")
 
-    # progress_every 参数校验
-    if progress_every is None:
-        progress_every = 50
-    try:
-        progress_every = int(progress_every)
-    except (TypeError, ValueError):
-        progress_every = 50
-    if progress_every <= 0:
-        progress_every = 50
-
     # -------------------------------------------------------------------------
     # 2. 时间步迭代
     # -------------------------------------------------------------------------
     iterator = range(max_iter)
-    # 若外部传入回调，一般不需要 tqdm 输出；否则保留 tqdm 的命令行体验
-    if progress_callback is None:
+    # Streamlit 环境下不使用 tqdm（避免控制台刷屏）
+    if progress_bar is None:
         iterator = tqdm(iterator, desc="计算进度", unit="step")
 
     for n in iterator:
         un = u.copy()
         vn = v.copy()
 
-        if progress_callback is not None and (n % progress_every == 0):
-            progress_callback(n, max_iter, f"计算中... ({n}/{max_iter})")
+        if progress_bar is not None and (n % 50 == 0):
+            pct = int(min(max(n / max_iter, 0.0), 1.0) * 100)
+            progress_bar.progress(pct, text=f"计算中... {pct}% ({n}/{max_iter})")
+            if progress_text is not None:
+                progress_text.caption(f"迭代步：{n}/{max_iter}")
 
         # ==================== A. 求解动量方程 (预测步) ====================
 
@@ -327,8 +333,8 @@ def lid_driven_cavity_mac(
                 p_list.append(p.copy())
 
         if converged:
-            if progress_callback is not None:
-                progress_callback(n + 1, max_iter, f"已收敛，停止于第 {n + 1} 步")
+            if progress_bar is not None:
+                progress_bar.progress(100, text=f"已收敛，停止于第 {n + 1} 步")
             break
 
     else:
@@ -339,8 +345,10 @@ def lid_driven_cavity_mac(
     v_list.append(v.copy())
     p_list.append(p.copy())
 
-    if progress_callback is not None:
-        progress_callback(min(max_iter, n + 1), max_iter, "计算完成")
+    if progress_bar is not None:
+        progress_bar.progress(100, text="计算完成")
+        if progress_text is not None:
+            progress_text.caption("计算完成")
 
 
     return u_list, v_list, p_list

@@ -65,13 +65,13 @@ def plot_u_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
-    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5))
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5), constrained_layout=True)
     cf = ax.contourf(X, Y, u_center, levels, cmap='jet')
     ax.contour(X, Y, u_center, levels=levels, colors='k', linewidths=0.6, alpha=0.6)
     _setup_axis(ax, Lx, Ly, 'u-velocity')
     cbar = fig.colorbar(cf, ax=ax, fraction=0.046, pad=0.04)
     _setup_colorbar(cbar)
-    fig.tight_layout()
+    # constrained_layout=True 确保四图尺寸一致
 
     if filename:
         fig.savefig(filename, dpi=300, bbox_inches='tight')
@@ -87,13 +87,13 @@ def plot_v_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
-    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5))
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5), constrained_layout=True)
     cf = ax.contourf(X, Y, v_center, levels, cmap='jet')
     ax.contour(X, Y, v_center, levels=levels, colors='k', linewidths=0.6, alpha=0.6)
     _setup_axis(ax, Lx, Ly, 'v-velocity')
     cbar = fig.colorbar(cf, ax=ax, fraction=0.046, pad=0.04)
     _setup_colorbar(cbar)
-    fig.tight_layout()
+    # constrained_layout=True 确保四图尺寸一致
 
     if filename:
         fig.savefig(filename, dpi=300, bbox_inches='tight')
@@ -109,13 +109,13 @@ def plot_pressure(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=Fa
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
-    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5))
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5), constrained_layout=True)
     cf = ax.contourf(X, Y, p, levels, cmap='jet')
     ax.contour(X, Y, p, levels=levels, colors='k', linewidths=0.6, alpha=0.6)
     _setup_axis(ax, Lx, Ly, 'Pressure Field')
     cbar = fig.colorbar(cf, ax=ax, fraction=0.046, pad=0.04)
     _setup_colorbar(cbar)
-    fig.tight_layout()
+    # constrained_layout=True 确保四图尺寸一致
 
     if filename:
         fig.savefig(filename, dpi=300, bbox_inches='tight')
@@ -131,7 +131,7 @@ def plot_streamlines(u, v, p, Re, Lx=1.0, Ly=1.0, density=1.5, filename=None, sh
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
-    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5))
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.5), constrained_layout=True)
     speed = np.sqrt(u_center ** 2 + v_center ** 2)
     st = ax.streamplot(
         X,
@@ -147,7 +147,7 @@ def plot_streamlines(u, v, p, Re, Lx=1.0, Ly=1.0, density=1.5, filename=None, sh
     _setup_axis(ax, Lx, Ly, 'Streamlines')
     cbar = fig.colorbar(st.lines, ax=ax, fraction=0.046, pad=0.04)
     _setup_colorbar(cbar)
-    fig.tight_layout()
+    # constrained_layout=True 确保四图尺寸一致
 
     if filename:
         fig.savefig(filename, dpi=300, bbox_inches='tight')

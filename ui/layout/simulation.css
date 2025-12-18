@@ -31,19 +31,29 @@
 
 /* 2. 开始计算按钮 */
 [data-testid="stForm"] button {
-    background: linear-gradient(135deg, #228be6 0%, #15aabf 100%);
-    color: white !important;
-    border: none;
-    padding: 0.6rem 1.2rem;
+    background-color: #ffffff;
+    color: #212529 !important;
+    border: 1px solid #ced4da;
+    padding: 0.55rem 1.1rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 6px rgba(34, 139, 230, 0.2);
-    transition: all 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
 }
 [data-testid="stForm"] button:hover {
-    background: linear-gradient(135deg, #1c7ed6 0%, #1098ad 100%);
-    box-shadow: 0 6px 12px rgba(34, 139, 230, 0.3);
-    transform: translateY(-2px);
+    background-color: #e7f5ff;
+    border-color: #228be6;
+    color: #1c7ed6 !important;
+    box-shadow: 0 6px 14px rgba(34, 139, 230, 0.18);
+    transform: translateY(-1px);
+}
+
+[data-testid="stForm"] button:disabled {
+    background-color: #f1f3f5;
+    border-color: #dee2e6;
+    color: #868e96 !important;
+    box-shadow: none;
+    transform: none;
 }
 
 /* 3. 图片标题 */

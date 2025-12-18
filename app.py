@@ -130,10 +130,10 @@ elif selected_key == "cfd":
             with c4:
                 time_step = st.number_input(
                     "时间步长 (dt)",
-                    min_value=0.000001,
+                    min_value=1e-12,
                     max_value=0.1,
                     value=float(f"{dt_recommended:.6f}"),
-                    format="%.6f",
+                    format="%.2e",
                 )
             with c5:
                 max_iter = st.number_input("最大迭代步数", 100, 200000, 20000, step=1000)
@@ -152,8 +152,10 @@ elif selected_key == "cfd":
             with c9:
                 if pressure_solver == "sor":
                     omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.8)
-                else:
-                    omega = 1.0
+                elif pressure_solver == "gauss_seidel":
+                    omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.0, disabled=True)
+                else:  # jacobi
+                    omega = st.slider("SOR 松弛因子 omega", 1.0, 1.95, 1.0, disabled=True)
 
             save_snapshots = st.checkbox("保存间隔快照（用于查看收敛过程）", value=False)
             save_interval = None

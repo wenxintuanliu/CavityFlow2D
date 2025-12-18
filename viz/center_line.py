@@ -203,13 +203,31 @@ def zxpm(u, v, x_face, y_face, x_center, y_center, target_Re, filename=None, sho
     # 图例合并
     handles = [line_handle_u, ghia_handle_u] if ghia_handle_u else [line_handle_u]
     labels = [h.get_label() for h in handles]
-    ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.02, 0.98),
-              fontsize=16, frameon=False, title="Vertical Centerline")
+    ax.legend(
+        handles,
+        labels,
+        loc='upper left',
+        bbox_to_anchor=(0.02, 0.98),
+        fontsize=10,
+        title="Vertical Centerline",
+        title_fontsize=10,
+        frameon=True,
+        framealpha=0.85,
+    )
 
     handles2 = [line_handle_v, ghia_handle_v] if ghia_handle_v else [line_handle_v]
     labels2 = [h.get_label() for h in handles2]
-    ax2.legend(handles2, labels2, loc='lower right', bbox_to_anchor=(0.98, 0.02),
-               fontsize=16, frameon=False, title="Horizontal Centerline")
+    ax2.legend(
+        handles2,
+        labels2,
+        loc='lower right',
+        bbox_to_anchor=(0.98, 0.02),
+        fontsize=10,
+        title="Horizontal Centerline",
+        title_fontsize=10,
+        frameon=True,
+        framealpha=0.85,
+    )
 
     # 标题
     #plt.title(f'Lid-Driven Cavity Flow (Re = {target_Re})', fontsize=fontsize, y=1.08)
