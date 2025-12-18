@@ -83,7 +83,7 @@ if selected_key == "project":
 elif selected_key == "cfd":
     # 懒加载：新求解器与新绘图模块
     from core.solver import lid_driven_cavity_mac
-    from viz.plot_flow import plot_results
+    from viz.plot_flow import plot_pressure, plot_streamlines, plot_u_velocity, plot_v_velocity
     from viz.center_line import zxpm
     import numpy as np
 
@@ -167,17 +167,6 @@ elif selected_key == "cfd":
 
     # B. 计算逻辑
     if submitted:
-        progress_bar = st.progress(0, text="准备开始计算...")
-        progress_text = st.empty()
-
-        def _progress_callback(current_step: int, total_steps: int, message: str = ""):
-            if total_steps <= 0:
-                return
-            pct = int(min(max(current_step / total_steps, 0.0), 1.0) * 100)
-            progress_bar.progress(pct, text=message or f"计算中... {pct}%")
-            if message:
-                progress_text.caption(message)
-
         with st.spinner("正在进行 N-S 方程求解..."):
             try:
                 u_list, v_list, p_list = lid_driven_cavity_mac(
@@ -191,8 +180,6 @@ elif selected_key == "cfd":
                     pressure_solver=pressure_solver,
                     omega=float(omega),
                     save_interval=save_interval,
-                    progress_callback=_progress_callback,
-                    progress_every=50,
                 )
 
                 st.session_state.cfd_result = {
@@ -207,11 +194,8 @@ elif selected_key == "cfd":
                     "omega": float(omega),
                     "save_interval": save_interval,
                 }
-                progress_bar.progress(100, text="计算完成")
                 st.success("✅ 计算完成")
             except Exception as e:
-                progress_bar.empty()
-                progress_text.empty()
                 st.error(f"Error: {e}")
 
     # C. 结果展示
@@ -241,7 +225,24 @@ elif selected_key == "cfd":
         x_center = (x_face[:-1] + x_face[1:]) / 2.0
         y_center = (y_face[:-1] + y_face[1:]) / 2.0
 
-        # 1) 中心线对比图（Ghia 数据）
+        # 1) 四张结果图拆开显示（每张图下方标注图名）
+        r1c1, r1c2 = st.columns(2)
+        with r1c1:
+            fig_u = plot_u_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
+            layout.render_plot_with_caption(fig_u, "u-velocity", "#f8f9fa")
+        with r1c2:
+            fig_v = plot_v_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
+            layout.render_plot_with_caption(fig_v, "v-velocity", "#f8f9fa")
+
+        r2c1, r2c2 = st.columns(2)
+        with r2c1:
+            fig_p = plot_pressure(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
+            layout.render_plot_with_caption(fig_p, "Pressure Field", "#f8f9fa")
+        with r2c2:
+            fig_s = plot_streamlines(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
+            layout.render_plot_with_caption(fig_s, "Streamlines", "#f8f9fa")
+
+        # 2) 中心线对比图放在四图下方，并居中显示（不全幅）
         fig_center = zxpm(
             u,
             v,
@@ -253,11 +254,16 @@ elif selected_key == "cfd":
             filename=None,
             show=False,
         )
-        layout.render_plot_with_caption(fig_center, "中心线剖面对比（Ghia 1982）", "#f8f9fa")
+        # 控制 web 显示尺寸：缩小 figure
+        try:
+            fig_center.set_size_inches(6.5, 6.5)
+            fig_center.tight_layout()
+        except Exception:
+            pass
 
-        # 2) 综合结果图（u/v/p/Streamlines）
-        fig_all = plot_results(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False)
-        layout.render_plot_with_caption(fig_all, "综合结果图（u/v/p/流线）", "#f8f9fa")
+        c_left, c_mid, c_right = st.columns([1, 2, 1])
+        with c_mid:
+            layout.render_plot_with_caption(fig_center, "中心线剖面对比（Ghia 1982）", "#f8f9fa")
     else:
         st.info("👆 请设置参数并点击“开始计算”按钮。")
 
