@@ -142,7 +142,7 @@ elif selected_key == "cfd":
                 key="cfd_dt",
             )
         with c5:
-            max_iter = st.number_input("最大迭代步数", 100, 200000, 20000, step=1000, key="cfd_max_iter")
+            max_iter = st.number_input("最大时间步数", 100, 200000, 20000, step=1000, key="cfd_max_iter")
         with c6:
             pressure_solver = st.selectbox(
                 "压力方程求解器",

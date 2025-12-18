@@ -140,7 +140,7 @@ def lid_driven_cavity_mac(
             pct = int(min(max(n / max_iter, 0.0), 1.0) * 100)
             progress_bar.progress(pct, text=f"计算中... {pct}% ({n}/{max_iter})")
             if progress_text is not None:
-                progress_text.caption(f"迭代步：{n}/{max_iter}")
+                progress_text.caption(f"时间步：{n}/{max_iter}")
 
         # ==================== A. 求解动量方程 (预测步) ====================
 
