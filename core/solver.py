@@ -27,9 +27,9 @@ def lid_driven_cavity_mac(
 
     # 尝试检测 Streamlit 运行环境（用于显示进度条）
     progress_bar = None
-    progress_text = None
+    st = None
     try:
-        import streamlit as st
+        import streamlit as st  # noqa: N812
         try:
             from streamlit.runtime.scriptrunner import get_script_run_ctx
             in_streamlit = get_script_run_ctx() is not None
@@ -40,7 +40,7 @@ def lid_driven_cavity_mac(
             progress_bar = st.progress(0, text="准备开始计算...")
     except Exception:
         progress_bar = None
-        progress_text = None
+        st = None
 
     # -------------------------------------------------------------------------
     # 1. 基础设置与网格初始化
@@ -133,6 +133,7 @@ def lid_driven_cavity_mac(
         iterator = tqdm(iterator, desc="计算进度", unit="step")
 
     converged_step = None
+    canceled_step = None
 
     for n in iterator:
         un = u.copy()
@@ -141,6 +142,15 @@ def lid_driven_cavity_mac(
         if progress_bar is not None and (n % 50 == 0):
             pct = int(min(max(n / max_iter, 0.0), 1.0) * 100)
             progress_bar.progress(pct, text=f"计算中... {pct}% ({n}/{max_iter})")
+
+            # 允许“停止计算”请求（注意：Streamlit 交互触发 rerun 后才会更新 session_state）
+            try:
+                if st is not None and bool(st.session_state.get("cfd_cancel_requested", False)):
+                    canceled_step = n + 1
+                    progress_bar.progress(100, text=f"已停止于第 {canceled_step} 步")
+                    break
+            except Exception:
+                pass
 
         # ==================== A. 求解动量方程 (预测步) ====================
 
@@ -345,7 +355,9 @@ def lid_driven_cavity_mac(
     p_list.append(p.copy())
 
     if progress_bar is not None:
-        if converged_step is not None:
+        if canceled_step is not None:
+            progress_bar.progress(100, text=f"已停止于第 {canceled_step} 步")
+        elif converged_step is not None:
             progress_bar.progress(100, text=f"计算完成：第 {converged_step} 步收敛")
         else:
             progress_bar.progress(100, text="计算完成")
@@ -354,6 +366,8 @@ def lid_driven_cavity_mac(
         info = {
             "converged": converged_step is not None,
             "converged_step": converged_step,
+            "canceled": canceled_step is not None,
+            "canceled_step": canceled_step,
             "max_iter": int(max_iter),
         }
         return u_list, v_list, p_list, info

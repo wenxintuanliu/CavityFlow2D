@@ -194,14 +194,29 @@ elif selected_key == "cfd":
             )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    # 单独一个 form 只放按钮：保留你现有的按钮样式，同时不影响参数区的实时刷新
+    # 运行控制：开始/停止并排（不要求全幅）
     with st.form("cfd_run_form"):
-        submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)")
+        b1, b2 = st.columns(2)
+        with b1:
+            submitted = st.form_submit_button("🚀 开始计算", use_container_width=True)
+        with b2:
+            stop_clicked = st.form_submit_button("⏹ 停止计算", use_container_width=True)
+
+    if stop_clicked:
+        # Streamlit 的脚本执行是同步的：停止按钮主要用于“停止后清空/隐藏结果”。
+        # 若需要中断正在运行的计算，可使用 Streamlit 自带的 Stop/重载。
+        st.session_state.cfd_cancel_requested = True
+        st.session_state.cfd_result = None
+        st.session_state.pop("cfd_plot_cache", None)
+        st.session_state.cfd_status_msg = "⏹ 已停止并清空当前结果。"
+        st.session_state.cfd_status_kind = "info"
+        st.rerun()
 
     st.divider()
 
     # B. 计算逻辑
     if submitted:
+        st.session_state.cfd_cancel_requested = False
         with st.spinner("正在进行 N-S 方程求解..."):
             try:
                 u_list, v_list, p_list, solve_info = lid_driven_cavity_mac(
@@ -235,7 +250,10 @@ elif selected_key == "cfd":
                 st.session_state.pop("cfd_plot_cache", None)
 
                 # 将结果提示写入 session_state，避免用户切换快照时提示消失
-                if solve_info.get("converged") and solve_info.get("converged_step") is not None:
+                if solve_info.get("canceled") and solve_info.get("canceled_step") is not None:
+                    st.session_state.cfd_status_msg = f"⏹ 已停止：在第 {solve_info['canceled_step']} 步停止。"
+                    st.session_state.cfd_status_kind = "info"
+                elif solve_info.get("converged") and solve_info.get("converged_step") is not None:
                     st.session_state.cfd_status_msg = f"✅ 计算完成！在第 {solve_info['converged_step']} 步收敛。"
                     st.session_state.cfd_status_kind = "success"
                 else:
