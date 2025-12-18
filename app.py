@@ -233,10 +233,17 @@ elif selected_key == "cfd":
                 }
                 # 新结果产生后，清空旧的图像缓存，避免显示错帧/错参数
                 st.session_state.pop("cfd_plot_cache", None)
+
+                # 将结果提示写入 session_state，避免用户切换快照时提示消失
                 if solve_info.get("converged") and solve_info.get("converged_step") is not None:
-                    st.success(f"✅ 计算完成！在第 {solve_info['converged_step']} 步收敛。")
+                    st.session_state.cfd_status_msg = f"✅ 计算完成！在第 {solve_info['converged_step']} 步收敛。"
+                    st.session_state.cfd_status_kind = "success"
                 else:
-                    st.success("✅ 计算完成（未在最大迭代步内完全收敛）")
+                    st.session_state.cfd_status_msg = "✅ 计算完成（未在最大迭代步内完全收敛）"
+                    st.session_state.cfd_status_kind = "info"
+
+                # 当结果帧数变化时，重置快照选择默认到最后一帧
+                st.session_state.cfd_frame_no = len(u_list)
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -245,15 +252,43 @@ elif selected_key == "cfd":
         res = st.session_state.cfd_result
         st.subheader(f"2. 模拟结果可视化 (Re={res['re']})")
 
+        # 持久展示计算完成信息（切换快照也不会消失）
+        status_msg = st.session_state.get("cfd_status_msg")
+        status_kind = st.session_state.get("cfd_status_kind", "success")
+        if status_msg:
+            if status_kind == "info":
+                st.info(status_msg)
+            else:
+                st.success(status_msg)
+
         u_list = res["u_list"]
         v_list = res["v_list"]
         p_list = res["p_list"]
 
         frame_count = len(u_list)
         if frame_count > 1:
-            frame_idx = st.slider("选择查看的快照帧", 0, frame_count - 1, frame_count - 1, 1)
+            # 输入式快照选择："请选择想要显示的快照【n】/总快照数"
+            c_a, c_b, c_c = st.columns([2.2, 1.0, 1.2])
+            with c_a:
+                st.markdown("请选择想要显示的快照")
+            with c_b:
+                default_no = int(st.session_state.get("cfd_frame_no", frame_count))
+                default_no = max(1, min(default_no, frame_count))
+                frame_no = st.number_input(
+                    "快照序号",
+                    min_value=1,
+                    max_value=frame_count,
+                    value=default_no,
+                    step=1,
+                    label_visibility="collapsed",
+                    key="cfd_frame_no",
+                )
+            with c_c:
+                st.markdown(f"/ {frame_count}")
+
+            frame_idx = int(frame_no) - 1
         else:
-            frame_idx = frame_count - 1
+            frame_idx = 0
 
         u = u_list[frame_idx]
         v = v_list[frame_idx]

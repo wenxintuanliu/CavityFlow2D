@@ -38,7 +38,6 @@ def lid_driven_cavity_mac(
 
         if in_streamlit:
             progress_bar = st.progress(0, text="准备开始计算...")
-            progress_text = st.empty()
     except Exception:
         progress_bar = None
         progress_text = None
@@ -142,8 +141,6 @@ def lid_driven_cavity_mac(
         if progress_bar is not None and (n % 50 == 0):
             pct = int(min(max(n / max_iter, 0.0), 1.0) * 100)
             progress_bar.progress(pct, text=f"计算中... {pct}% ({n}/{max_iter})")
-            if progress_text is not None:
-                progress_text.caption(f"时间步：{n}/{max_iter}")
 
         # ==================== A. 求解动量方程 (预测步) ====================
 
@@ -350,12 +347,8 @@ def lid_driven_cavity_mac(
     if progress_bar is not None:
         if converged_step is not None:
             progress_bar.progress(100, text=f"计算完成：第 {converged_step} 步收敛")
-            if progress_text is not None:
-                progress_text.caption(f"计算完成：第 {converged_step} 步收敛")
         else:
             progress_bar.progress(100, text="计算完成")
-            if progress_text is not None:
-                progress_text.caption("计算完成")
 
     if return_info:
         info = {
