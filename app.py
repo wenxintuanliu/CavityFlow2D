@@ -196,7 +196,7 @@ elif selected_key == "cfd":
     st.markdown("<br>", unsafe_allow_html=True)
     # 单独一个 form 只放按钮：保留你现有的按钮样式，同时不影响参数区的实时刷新
     with st.form("cfd_run_form"):
-        submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)", use_container_width=True)
+        submitted = st.form_submit_button("🚀 开始计算 (Start Calculation)")
 
     st.divider()
 
@@ -204,7 +204,7 @@ elif selected_key == "cfd":
     if submitted:
         with st.spinner("正在进行 N-S 方程求解..."):
             try:
-                u_list, v_list, p_list = lid_driven_cavity_mac(
+                u_list, v_list, p_list, solve_info = lid_driven_cavity_mac(
                     Re=re_num,
                     nx=int(nx),
                     ny=int(ny),
@@ -215,6 +215,7 @@ elif selected_key == "cfd":
                     pressure_solver=pressure_solver,
                     omega=float(omega),
                     save_interval=save_interval,
+                    return_info=True,
                 )
 
                 st.session_state.cfd_result = {
@@ -228,10 +229,14 @@ elif selected_key == "cfd":
                     "pressure_solver": pressure_solver,
                     "omega": float(omega),
                     "save_interval": save_interval,
+                    "solve_info": solve_info,
                 }
                 # 新结果产生后，清空旧的图像缓存，避免显示错帧/错参数
                 st.session_state.pop("cfd_plot_cache", None)
-                st.success("✅ 计算完成")
+                if solve_info.get("converged") and solve_info.get("converged_step") is not None:
+                    st.success(f"✅ 计算完成！在第 {solve_info['converged_step']} 步收敛。")
+                else:
+                    st.success("✅ 计算完成（未在最大迭代步内完全收敛）")
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -294,13 +299,13 @@ elif selected_key == "cfd":
                 "u",
                 lambda: plot_u_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
             )
-            layout.render_plot_with_caption(image_bytes=img_u, caption_text="u-velocity", color_theme="#e7f5ff")
+            layout.render_plot_with_caption(image_bytes=img_u, caption_text="u-velocity", color_theme="#d0ebff")
         with r1c2:
             img_v = _get_plot_bytes(
                 "v",
                 lambda: plot_v_velocity(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
             )
-            layout.render_plot_with_caption(image_bytes=img_v, caption_text="v-velocity", color_theme="#e7f5ff")
+            layout.render_plot_with_caption(image_bytes=img_v, caption_text="v-velocity", color_theme="#d0ebff")
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
@@ -308,13 +313,13 @@ elif selected_key == "cfd":
                 "p",
                 lambda: plot_pressure(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
             )
-            layout.render_plot_with_caption(image_bytes=img_p, caption_text="Pressure Field", color_theme="#e7f5ff")
+            layout.render_plot_with_caption(image_bytes=img_p, caption_text="Pressure Field", color_theme="#d0ebff")
         with r2c2:
             img_s = _get_plot_bytes(
                 "s",
                 lambda: plot_streamlines(u, v, p, Re=res["re"], Lx=1.0, Ly=1.0, filename=None, show=False),
             )
-            layout.render_plot_with_caption(image_bytes=img_s, caption_text="Streamlines", color_theme="#e7f5ff")
+            layout.render_plot_with_caption(image_bytes=img_s, caption_text="Streamlines", color_theme="#d0ebff")
 
         # 2) 中心线对比图放在四图下方，并居中显示（不全幅）
         img_center = _get_plot_bytes(
@@ -337,7 +342,7 @@ elif selected_key == "cfd":
             layout.render_plot_with_caption(
                 image_bytes=img_center,
                 caption_text="中心线剖面对比（Ghia 1982）",
-                color_theme="#e7f5ff",
+                color_theme="#d0ebff",
             )
     else:
         st.info("👆 请设置参数并点击“开始计算”按钮。")
@@ -356,7 +361,7 @@ elif selected_key == "knowledge":
         
         with col_back:
             # 按钮填满左侧小列
-            if st.button("⬅️ 返回", use_container_width=True):
+            if st.button("⬅️ 返回"):
                 st.session_state.reading_article = None
                 st.rerun()
                 

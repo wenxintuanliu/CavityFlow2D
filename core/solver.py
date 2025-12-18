@@ -6,6 +6,7 @@ def lid_driven_cavity_mac(
         Re=100, nx=60, ny=60, max_iter=20000, dt=0.001, Vtol=1e-6, Ptol=1e-6,
         pressure_solver="sor", omega=1.8,
         save_interval=None,
+    return_info: bool = False,
 ):
     """
     MAC网格 + 有限差分法求解顶盖驱动方腔流。
@@ -131,6 +132,8 @@ def lid_driven_cavity_mac(
     # Streamlit 环境下不使用 tqdm（避免控制台刷屏）
     if progress_bar is None:
         iterator = tqdm(iterator, desc="计算进度", unit="step")
+
+    converged_step = None
 
     for n in iterator:
         un = u.copy()
@@ -315,15 +318,14 @@ def lid_driven_cavity_mac(
 
         # ==================== D. 检查收敛与数据保存 ====================
 
-        converged = False
         if n % 100 == 0:
             # 使用相对误差
             err_u = np.linalg.norm(u - un) / (np.linalg.norm(un) + 1e-12)
             err_v = np.linalg.norm(v - vn) / (np.linalg.norm(vn) + 1e-12)
 
             if err_u < Vtol and err_v < Vtol:
-                print(f"收敛于第 {n} 步 (Error: {max(err_u, err_v):.2e})")
-                converged = True
+                converged_step = n + 1
+                print(f"收敛于第 {converged_step} 步 (Error: {max(err_u, err_v):.2e})")
 
         # 按需保存快照：save_interval=None 时不保存历史
         if save_interval is not None:
@@ -332,9 +334,9 @@ def lid_driven_cavity_mac(
                 v_list.append(v.copy())
                 p_list.append(p.copy())
 
-        if converged:
+        if converged_step is not None:
             if progress_bar is not None:
-                progress_bar.progress(100, text=f"已收敛，停止于第 {n + 1} 步")
+                progress_bar.progress(100, text=f"已收敛，停止于第 {converged_step} 步")
             break
 
     else:
@@ -346,9 +348,21 @@ def lid_driven_cavity_mac(
     p_list.append(p.copy())
 
     if progress_bar is not None:
-        progress_bar.progress(100, text="计算完成")
-        if progress_text is not None:
-            progress_text.caption("计算完成")
+        if converged_step is not None:
+            progress_bar.progress(100, text=f"计算完成：第 {converged_step} 步收敛")
+            if progress_text is not None:
+                progress_text.caption(f"计算完成：第 {converged_step} 步收敛")
+        else:
+            progress_bar.progress(100, text="计算完成")
+            if progress_text is not None:
+                progress_text.caption("计算完成")
 
+    if return_info:
+        info = {
+            "converged": converged_step is not None,
+            "converged_step": converged_step,
+            "max_iter": int(max_iter),
+        }
+        return u_list, v_list, p_list, info
 
     return u_list, v_list, p_list

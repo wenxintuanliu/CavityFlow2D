@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
 
+_FONT_FAMILY = ["Times New Roman", "DejaVu Serif", "Liberation Serif", "serif"]
+
+
 def zxpm(u, v, x_face, y_face, x_center, y_center, target_Re, filename=None, show=False):
     """
     绘制中心剖面图，对比 Ghia (1982) 基准数据。
@@ -122,7 +125,7 @@ def zxpm(u, v, x_face, y_face, x_center, y_center, target_Re, filename=None, sho
 
     plt.rcParams['xtick.direction'] = 'in'
     plt.rcParams['ytick.direction'] = 'in'
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 16
 
     # 创建画布

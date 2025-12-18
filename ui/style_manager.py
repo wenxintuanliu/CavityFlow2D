@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import io
+import base64
 
 def load_css(filename):
     """读取 CSS 文件内容"""
@@ -102,7 +103,18 @@ def render_plot_with_caption(fig=None, caption_text="", color_theme="#f8f9fa", i
         if fig is None:
             raise ValueError("render_plot_with_caption 需要 fig 或 image_bytes")
         image_bytes = fig_to_png_bytes(fig)
-    st.image(image_bytes, use_container_width=True)
+
+    # Streamlit Cloud 新版本提示 use_container_width 将弃用；
+    # 这里使用 HTML img 做 100% 宽度展示，避免依赖该参数。
+    b64 = base64.b64encode(image_bytes).decode("ascii")
+    st.markdown(
+        f"""
+        <div style="width: 100%;">
+            <img src="data:image/png;base64,{b64}" style="width: 100%; height: auto; display: block;" />
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown(f"""
         <div class="plot-container">
             <span class="plot-caption" style="background-color: {color_theme};">

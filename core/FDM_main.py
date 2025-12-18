@@ -60,7 +60,7 @@ while True:
         break
 
 # 4. 迭代参数
-max_iter = get_input("请输入最大迭代步数 max_iter", int, default=20000)
+max_iter = get_input("请输入最大时间步数 max_iter", int, default=20000)
 Vtol = get_input("请输入速度场收敛容差 Vtol", float, default=1e-6)
 Ptol = get_input("请输入压力方程收敛容差 Ptol", float, default=1e-6)
 

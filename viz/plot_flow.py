@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, LinearLocator, FormatStrFormatter
 
 
+_FONT_FAMILY = ["Times New Roman", "DejaVu Serif", "Liberation Serif", "serif"]
+
+
 def _prepare_center_fields(u, v, p, Lx=1.0, Ly=1.0):
     ny, nx = p.shape
 
@@ -37,16 +40,14 @@ def _setup_axis(ax, Lx, Ly, title):
     major_formatter = FuncFormatter(axis_formatter)
 
     ax.set_title(title, fontsize=18, fontweight='bold')
-    ax.set_xlabel('x', fontsize=14, fontname='Times New Roman')
-    ax.set_ylabel('y', fontsize=14, fontname='Times New Roman')
+    ax.set_xlabel('x', fontsize=14)
+    ax.set_ylabel('y', fontsize=14)
     ax.set_aspect('equal')
     ax.set_xlim(0, Lx)
     ax.set_ylim(0, Ly)
     ax.xaxis.set_major_formatter(major_formatter)
     ax.yaxis.set_major_formatter(major_formatter)
     ax.tick_params(axis='both', which='major', labelsize=12)
-    for label in ax.get_xticklabels() + ax.get_yticklabels():
-        label.set_fontname('Times New Roman')
 
 
 def _setup_colorbar(cbar, fmt: str = '%7.2f'):
@@ -56,14 +57,12 @@ def _setup_colorbar(cbar, fmt: str = '%7.2f'):
     cbar.formatter = FormatStrFormatter(fmt)
     cbar.update_ticks()
     cbar.ax.tick_params(labelsize=12)
-    for label in cbar.ax.get_yticklabels():
-        label.set_fontname('Times New Roman')
 
 
 def plot_u_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=False):
     X, Y, u_center, _v_center = _prepare_center_fields(u, v, p, Lx=Lx, Ly=Ly)
 
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
@@ -85,7 +84,7 @@ def plot_u_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=
 def plot_v_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=False):
     X, Y, _u_center, v_center = _prepare_center_fields(u, v, p, Lx=Lx, Ly=Ly)
 
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
@@ -107,7 +106,7 @@ def plot_v_velocity(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=
 def plot_pressure(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=False):
     X, Y, _u_center, _v_center = _prepare_center_fields(u, v, p, Lx=Lx, Ly=Ly)
 
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
@@ -129,7 +128,7 @@ def plot_pressure(u, v, p, Re, Lx=1.0, Ly=1.0, levels=15, filename=None, show=Fa
 def plot_streamlines(u, v, p, Re, Lx=1.0, Ly=1.0, density=1.5, filename=None, show=False):
     X, Y, u_center, v_center = _prepare_center_fields(u, v, p, Lx=Lx, Ly=Ly)
 
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 12
     plt.rcParams['axes.unicode_minus'] = False
 
@@ -175,7 +174,7 @@ def plot_results(u, v, p, Re, Lx=1.0, Ly=1.0, filename=None, show=False):
     # 兼容接口：仍返回 2x2 Figure（用于脚本或你仍想一次性保存）
     X, Y, u_center, v_center = _prepare_center_fields(u, v, p, Lx=Lx, Ly=Ly)
 
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = _FONT_FAMILY
     plt.rcParams['font.size'] = 14
     plt.rcParams['axes.unicode_minus'] = False
 
