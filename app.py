@@ -75,7 +75,7 @@ if selected_key == "project":
         # 1:2:1 布局
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
-            st.image(img_path, caption="Lid-Driven Cavity Flow Result")
+            st.image(img_path, caption="Lid-Driven Cavity Flow Model")
 
 # ==============================================================================
 # 模块 2: CFD 计算模拟
