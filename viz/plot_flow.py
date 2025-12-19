@@ -179,7 +179,7 @@ def plot_results(u, v, p, Re, Lx=1.0, Ly=1.0, filename=None, show=False):
     plt.rcParams['axes.unicode_minus'] = False
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 12))
-    fig.suptitle(f'Lid-Driven Cavity Flow Results (Re={Re})', fontsize=24, fontweight='bold', y=0.96)
+    fig.suptitle(f'Lid-Driven Cavity Flow Model (Re={Re})', fontsize=24, fontweight='bold', y=0.96)
 
     levels = 15
 

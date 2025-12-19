@@ -27,7 +27,7 @@ with st.sidebar:
         icon_url = "https://cdn-icons-png.flaticon.com/512/5758/5758248.png"
         st.image(icon_url, width=60)
         st.title("CFD Studio")
-        st.caption("Ver 4.1 | Stable Release")
+        st.caption("Ver 1.0 | Stable Release")
     
     st.markdown("---")
     
