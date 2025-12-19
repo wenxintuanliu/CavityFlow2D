@@ -8,7 +8,7 @@
 
 # 项目介绍
 
-本项目为“二维顶盖驱动方腔流”数值求解与可视化展示，使用 Streamlit Cloud（https://share.streamlit.io/）部署并运行。
+本项目为“二维顶盖驱动方腔流”数值求解与可视化展示，使用 [Streamlit Cloud](https://share.streamlit.io/) 部署并运行。
 
 ## 二维顶盖驱动方腔流
 由于其边界条件与几何形状简单，但仍能体现非线性、涡结构等关键流动特征，因此常用于：
