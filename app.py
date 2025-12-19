@@ -56,7 +56,7 @@ with st.sidebar:
 if selected_key == "project":
     st.session_state.reading_article = None
     
-    st.header("📖 项目介绍")
+    st.header("📖 首页")
     st.divider()
     
     # A. 渲染文字 (iframe 渲染)
