@@ -69,7 +69,7 @@ if selected_key == "project":
 
     # B. 渲染图片
     # 修复：使用绝对路径确保 Streamlit 能找到文件
-    img_path = os.path.abspath(os.path.join("assets", "cover.jpg"))
+    img_path = os.path.abspath(os.path.join("assets", "cover.png"))
     if os.path.exists(img_path):
         st.markdown("#### 📸 可视化展示")
         # 1:2:1 布局
